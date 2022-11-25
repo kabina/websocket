@@ -8,6 +8,7 @@ def action():
 
     img_capture = pyautogui.locateOnScreen(r"img\target1.png", confidence=0.7)  #, region=(1800, 0, 1920, 100))
     print(img_capture)
+    pyautogui.press('f5')
     pyautogui.moveTo(img_capture)
     pyautogui.rightClick()
 
