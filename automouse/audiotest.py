@@ -22,7 +22,8 @@ frames = []
 
 while (True):
     datasrc = stream.read(CHUNK)
-    data = np.fromstring(datasrc, dtype=np.int16)
+    # data = np.fromstring(datasrc, dtype=np.int16)
+    data = np.frombuffer(datasrc, dtype=np.int16)
     frames.append(datasrc)
     if np.average(np.abs(data)) > 100 :
         print(int(np.average(np.abs(data))))
