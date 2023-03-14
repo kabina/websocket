@@ -5,15 +5,12 @@ from datetime import datetime
 import json
 import props
 
-global transactionId
-
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-
 # timestamp= datetime.utcnow().isoformat()
 
 class Charger :
@@ -70,7 +67,5 @@ async def main() :
     await c.runcase(props.cases_normal_charge_with_boot)
     await c.waitMessages()
 
-
 if __name__ == "__main__":
-    # asyncio.run() is used when running this example with Python >= 3.7v
     asyncio.run(main())
