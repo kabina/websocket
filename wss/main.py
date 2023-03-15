@@ -43,8 +43,8 @@ class Charger :
 
     async def conn(self):
         self.ws = await websockets.connect(
-            # "wss://dbtrjhrz7uk2r.cloudfront.net/ELA007C01/EVSCA070007",
-            "wss://ws.devevspcharger.uplus.co.kr/ocpp16/ELA007C01/EVSCA070007",
+            "wss://dbtrjhrz7uk2r.cloudfront.net/ELA007C01/EVSCA070007",
+            #"wss://ws.devevspcharger.uplus.co.kr/ocpp16/ELA007C01/EVSCA070007",
             subprotocols=["ocpp1.6"],
             extra_headers={"Authorization": "Basic RVZBUjpFVkFSTEdV"}
         )
@@ -84,9 +84,10 @@ class Charger :
         await self.ws.send(json.dumps(doc))
         logger.info(f">> {doc[2]}:{doc}")
         recv = await self.ws.recv()
+        print(recv)
         logger.info(f"<< {doc[2]}:{recv}")
         recv = json.loads(recv)
-
+        print(recv)
         # 후처리
         if ocpp[0]=="StartTransaction" and recv[0] == 3:
             self.transactionId = recv[2]["transactionId"]
