@@ -1,20 +1,101 @@
-cases_boot = [
-  ["BootNotification", {}],
-  ["StatusNotification", {"status": "Available"}],
-  ["Authorize", {"idTag": "1031040000069641"}]
-]
-cases_normal_charge_with_boot = [
-  ["BootNotification", {}],
-  ["StatusNotification", {"status": "Available"}],
-  ["Authorize", {"idTag": "1031040000069641"}],
-  ["StatusNotification", {"status": "Preparing"}],
-  ["StartTransaction", {"idTag": "1031040000069641"}],
-  ["StatusNotification", {"status": "Charging"}],
-  ["MeterValues", {"transactionId":None}],
-  ["StopTransaction", {"transactionId": None}],
-  ["StatusNotification", {"status": "Available"}],
-]
-
+TC = {
+    # "TC_000_BOOT" : [
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Available"}],
+    #     ["Authorize", {"idTag": "1031040000069641"}]
+    # ],
+    # "TC_003" : [
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Available"}],
+    #     ["Authorize", {"idTag": "1031040000069641"}],
+    #     ["StartTransaction", {"idTag": "1031040000069641"}],
+    #     ["StatusNotification", {"status": "Charging"}],
+    #     ["MeterValues", {"transactionId":None}],
+    #     ["StopTransaction", {"transactionId": None}],
+    #     ["StatusNotification", {"status": "Finishing"}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_004_1" : [
+    #     ["BootNotification", {}],
+    #     ["Authorize", {"idTag": "1031040000069641"}],
+    #     ["StatusNotification", {"status": "Preparing"}],
+    #     ["StartTransaction", {"idTag": "1031040000069641"}],
+    #     ["StatusNotification", {"status": "Charging"}],
+    #     ["MeterValues", {"transactionId":None}],
+    #     ["StopTransaction", {"transactionId": None}],
+    #     ["StatusNotification", {"status": "Finishing"}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_004_2": [
+    #     ["BootNotification", {}],
+    #     ["Authorize", {"idTag": "1031040000069641"}],
+    #     ["StatusNotification", {"status": "Preparing"}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_005_1": [
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Preparing"}],
+    #     ["Authorize", {"idTag": "1031040000069641"}],
+    #     ["StartTransaction", {"idTag": "1031040000069641"}],
+    #     ["StatusNotification", {"status": "Charging"}],
+    #     ["MeterValues", {"transactionId":None}],
+    #     ["StatusNotification", {"status": "SuspendedEV"}],
+    #     ["StopTransaction", {"transactionId": None}],
+    #     ["StatusNotification", {"status": "Finishing"}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_061": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "Reset"],
+    # ],
+    "TC_010": [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StartTransaction", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["StopTransaction", {"transactionId": None}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_011_1": [
+        ["BootNotification", {}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StartTransaction", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["StopTransaction", {"transactionId": None}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_011_2": [
+        ["BootNotification", {}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_012": [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StartTransaction", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["Wait", "RemoteStopTransaction"],
+        ["StopTransaction", {"transactionId": None}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_013": [
+        ["BootNotification", {}],
+        ["Wait", "Reset"],
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+}
 ocppDocs = {
     "BootNotification": [
         2,
@@ -97,5 +178,26 @@ ocppDocs = {
             "timestamp": "2023-02-24T08:41:42.615Z",
             "transactionId": 120532006
         }
-    ]
+    ],
+    "ClearCacheResponse": [
+        3,
+        "2023-02-24T08:41:42.615Z",
+        {
+            "status": "Accepted"
+        }
+    ],
+    "ResetResponse": [
+        3,
+        "2023-02-24T08:41:42.615Z",
+        {
+            "status": "Accepted"
+        }
+    ],
+    "ClearCacheResponse": [
+        3,
+        "2023-02-24T08:41:42.615Z",
+        {
+            "status": "Accepted"
+        }
+    ],
 }
