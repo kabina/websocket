@@ -66,7 +66,9 @@ class Charger :
         """
         ocpp[1] = datetime.utcnow().isoformat()
         await self.ws.send(json.dumps(ocpp))
+        noused = await self.ws.recv()
         logger.info(f">> Reply {ocpp}")
+        logger.info(f"<< Check Response for Reply {noused}")
 
 
     async def sendDocs(self, ocpp):
@@ -84,10 +86,8 @@ class Charger :
         await self.ws.send(json.dumps(doc))
         logger.info(f">> {doc[2]}:{doc}")
         recv = await self.ws.recv()
-        print(recv)
         logger.info(f"<< {doc[2]}:{recv}")
         recv = json.loads(recv)
-        print(recv)
         # 후처리
         if ocpp[0]=="StartTransaction" and recv[0] == 3:
             self.transactionId = recv[2]["transactionId"]
@@ -113,8 +113,8 @@ class Charger :
         for case in cases.keys():
             logger.info(f"Testing... [{case}]")
             for c in cases[case] :
+                #time.sleep(1)
                 if c[0] == "Wait" :
-                    time.sleep(1)
                     print(f"Waiting message from CSMS [{c[1]}] ...")
                     recv = await self.waitMessages()
                     recv = json.loads(recv)
