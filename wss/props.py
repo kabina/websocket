@@ -51,7 +51,7 @@ TC = {
     "TC_010": [
         ["BootNotification", {}],
         ["StatusNotification", {"status": "Preparing"}],
-        ["Wait", "RemoteStartTransaction"],
+        ["Wait", "Reset"],
         ["Authorize", {"idTag": "1031040000069641"}],
         # ["StartTransaction", {"idTag": "1031040000069641"}],
         # ["StatusNotification", {"status": "Charging"}],

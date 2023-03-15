@@ -5,34 +5,35 @@ from datetime import datetime
 import json
 import props
 import jsonschema
-import colorlog
+from colorlog import ColoredFormatter
 
-class CustomFormatter(logging.Formatter):
-    grey = "\x1b[38;21m"
-    yellow = "\x1b[33;21m"
-    red = "\x1b[31;21m"
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
-    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
 
-    FORMATS = {
-        logging.DEBUG: grey + format + reset,
-        logging.INFO: grey + format + reset,
-        logging.WARNING: yellow + format + reset,
-        logging.ERROR: red + format + reset,
-        logging.CRITICAL: bold_red + format + reset
-    }
+formatter = ColoredFormatter(
+    "%(log_color)s[%(asctime)s] %(message)s",
+    datefmt=None,
+    reset=True,
+    log_colors={
+        'DEBUG':    'cyan',
+        'INFO':     'white,bold',
+        'INFOV':    'cyan,bold',
+        'WARNING':  'yellow',
+        'ERROR':    'red,bold',
+        'CRITICAL': 'red,bg_white',
+    },
+    secondary_log_colors={},
+    style='%'
+)
+ch.setFormatter(formatter)
 
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
+logger = logging.getLogger('attcap')
+logger.setLevel(logging.DEBUG)
+logger.handlers = []       # No duplicated handlers
+logger.propagate = False   # workaround for duplicated logs in ipython
+logger.addHandler(ch)
 
-logger = colorlog.getLogger()
-logger.setLevel(logging.INFO)
-stream_handler = colorlog.StreamHandler()
-stream_handler.setFormatter(CustomFormatter())
-logger.addHandler(stream_handler)
+logging.addLevelName(logging.INFO + 1, 'INFOV')
 
 # timestamp= datetime.utcnow().isoformat()
 
@@ -66,9 +67,9 @@ class Charger :
         """
         ocpp[1] = datetime.utcnow().isoformat()
         await self.ws.send(json.dumps(ocpp))
-        noused = await self.ws.recv()
         logger.info(f">> Reply {ocpp}")
-        logger.info(f"<< Check Response for Reply {noused}")
+        noused = await self.ws.recv()
+        logger.info(f"<< Check Response for Reply |{noused}|")
 
 
     async def sendDocs(self, ocpp):
@@ -113,7 +114,7 @@ class Charger :
         for case in cases.keys():
             logger.info(f"Testing... [{case}]")
             for c in cases[case] :
-                #time.sleep(1)
+
                 if c[0] == "Wait" :
                     print(f"Waiting message from CSMS [{c[1]}] ...")
                     recv = await self.waitMessages()
