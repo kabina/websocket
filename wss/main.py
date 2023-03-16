@@ -133,7 +133,7 @@ class Charger :
             "Cache-Control":"no-cache",
         }
         response = requests.post(url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
-        logger.info(response)
+
     async def runcase(self, cases):
         import time
         failed = 0
