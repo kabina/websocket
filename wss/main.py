@@ -12,6 +12,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 
+# wss_url = "wss://dbtrjhrz7uk2r.cloudfront.net/ELA007C01/EVSCA070007",
+wss_url = "wss://ws.devevspcharger.uplus.co.kr/ocpp16/ELA007C01/EVSCA070007"
+
+
+rest_url =""
 formatter = ColoredFormatter(
     "%(log_color)s[%(asctime)s] %(message)s",
     datefmt=None,
@@ -47,22 +52,25 @@ class Charger :
 
     async def conn(self):
         self.ws = await websockets.connect(
-            #"wss://dbtrjhrz7uk2r.cloudfront.net/ELA007C01/EVSCA070007",
-            "wss://ws.devevspcharger.uplus.co.kr/ocpp16/ELA007C01/EVSCA070007",
+            wss_url,
             subprotocols=["ocpp1.6"],
             extra_headers={"Authorization": "Basic RVZBUjpFVkFSTEdV"}
         )
 
     async def waitMessages(self):
-        while True:
-            message = await self.ws.recv()
-            message = json.loads(message)
-            logger.info(f"<< {message[2]}:{message}")
-            self.rmessageId = message[1]
 
-            """ToDo: 이 위치에 서버의 명령에 따른 처리 추가 필요
-            """
-            return message
+        try :
+            while True:
+                message = await asyncio.wait_for(self.ws.recv(), 5)
+                message = json.loads(message)
+                logger.info(f"<< {message[2]}:{message}")
+                self.rmessageId = message[1]
+
+                """ToDo: 이 위치에 서버의 명령에 따른 처리 추가 필요
+                """
+                return message
+        except Exception as e:
+            return
 
     async def sendReply(self, ocpp):
         """
@@ -70,7 +78,6 @@ class Charger :
         :param ocpp: 응답전문 본체
         :return: None
         """
-        # ocpp[1] = datetime.utcnow().isoformat()
         ocpp[1] = self.rmessageId
         if "transactionId" in ocpp[2] and self.transactionId > 0:
             ocpp[2]["transactionId"] = self.transactionId
@@ -116,10 +123,10 @@ class Charger :
             print(e.message)
             return False
         return True
+
     async def callbackRequest(self, msgType, doc):
+        rest_url = 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc'
         import requests
-        # url = 'https://pmxu4e9z1l.execute-api.ap-northeast-2.amazonaws.com/test/sendtoclient'
-        url = 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc'
         if "transactionId" in doc[3] :
             doc[3]["transactionId"] = self.transactionId
 
@@ -132,9 +139,10 @@ class Charger :
             "Content-Type":"application/json",
             "Cache-Control":"no-cache",
         }
-        response = requests.post(url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
+        response = requests.post(rest_url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
 
     async def runcase(self, cases):
+
         import time
         failed = 0
         for case in cases.keys():
@@ -152,6 +160,10 @@ class Charger :
                     await self.callbackRequest(c[1], doc)
                 elif c[0] == "Reply":
                     recv = await self.waitMessages()
+                    if recv == None :
+                        failed += 1
+                        logger.error("None response from server. test case failed")
+                        continue
                     if self.checkSchema(c[1], recv[3]) == False:
                         logger.error(f"Fail ( Invalid testcase message from server, expected ({c[1]}) received ({recv[2]})")
                         failed += 1
@@ -167,12 +179,10 @@ class Charger :
                     if self.checkSchema(f"{c[0]}Response", recv[2]) == False:
                         logger.error(f"Fail ( Invalid testcase message from server )")
                         failed += 1
-        logger.debug(f"Total {len(cases)} tested and {len(cases)-failed} cases success.")
+        logger.debug(f"Total {len(cases)} cases tested and {len(cases)-failed} cases succeed.")
 
 async def main() :
 
-    # url = input()
-    # idtags = input()
     c = Charger()
     await c.conn()
     await c.runcase(props.TC)

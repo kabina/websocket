@@ -1,9 +1,9 @@
 TC = {
-    # "TC_000_BOOT" : [
-    #     ["BootNotification", {}],
-    #     ["StatusNotification", {"status": "Available"}],
-    #     ["Authorize", {"idTag": "1031040000069641"}]
-    # ],
+    "TC_000_BOOT" : [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Available"}],
+        ["Authorize", {"idTag": "1031040000069641"}]
+    ],
     # "TC_003" : [
     #     ["BootNotification", {}],
     #     ["StatusNotification", {"status": "Available"}],
@@ -231,11 +231,11 @@ TC = {
     #     ["StatusNotification", {"status": "Finishing"}],
     #     ["StatusNotification", {"status": "Available"}],
     # ],
-    # "TC_040_1": [
-    #     ["BootNotification", {}],
-    #     ["Wait", "ChangeConfiguration", {"UnknownConfigurationKey":"300"}],
-    #     ["Reply", "ChangeConfiguration", {"status":"NotSupported"}],
-    # ],
+    "TC_040_1": [
+        ["BootNotification", {}],
+        ["Wait", "ChangeConfiguration", {"UnknownConfigurationKey":"300"}],
+        ["Reply", "ChangeConfiguration", {"status":"NotSupported"}],
+    ],
     # "TC_040_2": [
     #     ["BootNotification", {}],
     #     ["Wait", "ChangeConfiguration",{"key": "MeterValueSampleInterval", "value": "-1"}],
