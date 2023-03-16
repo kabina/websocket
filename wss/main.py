@@ -144,6 +144,7 @@ class Charger :
     async def runcase(self, cases):
 
         import time
+        scases = []
         failed = 0
         for case in cases.keys():
             logger.debug("+===========================================================")
@@ -161,12 +162,12 @@ class Charger :
                 elif c[0] == "Reply":
                     recv = await self.waitMessages()
                     if recv == None :
-                        failed += 1
+                        scases.append(case)
                         logger.error("None response from server. test case failed")
                         continue
                     if self.checkSchema(c[1], recv[3]) == False:
                         logger.error(f"Fail ( Invalid testcase message from server, expected ({c[1]}) received ({recv[2]})")
-                        failed += 1
+                        scases.append(case)
                     else:
                         senddoc = props.ocppDocs[f"{recv[2]}Response"]
                         senddoc[1] = recv[1]
@@ -178,8 +179,12 @@ class Charger :
                     recv = await self.sendDocs(c)
                     if self.checkSchema(f"{c[0]}Response", recv[2]) == False:
                         logger.error(f"Fail ( Invalid testcase message from server )")
-                        failed += 1
-        logger.debug(f"Total {len(cases)} cases tested and {len(cases)-failed} cases succeed.")
+                        scases.append(case)
+
+        logger.debug(f"Total {len(cases)} cases tested and {len(scases)} cases succeed. Failed cases are as follows")
+        logger.debug("==========================================================================")
+        for c in scases:
+            logger.debug(f"{c}")
 
 async def main() :
 
