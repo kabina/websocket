@@ -47,8 +47,8 @@ class Charger :
 
     async def conn(self):
         self.ws = await websockets.connect(
-            "wss://dbtrjhrz7uk2r.cloudfront.net/ELA007C01/EVSCA070007",
-            #"wss://ws.devevspcharger.uplus.co.kr/ocpp16/ELA007C01/EVSCA070007",
+            #"wss://dbtrjhrz7uk2r.cloudfront.net/ELA007C01/EVSCA070007",
+            "wss://ws.devevspcharger.uplus.co.kr/ocpp16/ELA007C01/EVSCA070007",
             subprotocols=["ocpp1.6"],
             extra_headers={"Authorization": "Basic RVZBUjpFVkFSTEdV"}
         )
@@ -116,27 +116,27 @@ class Charger :
             print(e.message)
             return False
         return True
-    async def callbackRequest(self, msgType):
+    async def callbackRequest(self, msgType, doc):
         import requests
-        url = 'https://pmxu4e9z1l.execute-api.ap-northeast-2.amazonaws.com/test/sendtoclient'
-        doc = props.ocppDocs[msgType]
+        # url = 'https://pmxu4e9z1l.execute-api.ap-northeast-2.amazonaws.com/test/sendtoclient'
+        url = 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc'
         if "transactionId" in doc[3] :
             doc[3]["transactionId"] = self.transactionId
 
         reqdoc = {
-            "cid":"115001513031A",
-            "data": props.ocppDocs[msgType]
+            "crgrMid":"11500151303",
+            "data": doc
         }
         header = {
             "Accept":"*/*",
             "Content-Type":"application/json",
-            "Cache-Control":"no-cache"
+            "Cache-Control":"no-cache",
         }
         response = requests.post(url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
         logger.info(response)
     async def runcase(self, cases):
         import time
-        passed = 0
+        failed = 0
         for case in cases.keys():
             logger.debug("+===========================================================")
             logger.info(f"Testing... [{case}]")
@@ -145,10 +145,16 @@ class Charger :
 
                 if c[0] == "Wait" :
                     print(f"Waiting message from CSMS [{c[1]}] ...")
-                    await self.callbackRequest(c[1])
+                    doc = props.ocppDocs[c[1]]
+                    if len(c) > 2:
+                        for d in c[2].keys():
+                            doc[3][d] = c[2][d]
+                    await self.callbackRequest(c[1], doc)
+                elif c[0] == "Reply":
                     recv = await self.waitMessages()
-                    if self.checkSchema(c[1], recv[3]) == False and recv[2] != c[1]:
+                    if self.checkSchema(c[1], recv[3]) == False:
                         logger.error(f"Fail ( Invalid testcase message from server, expected ({c[1]}) received ({recv[2]})")
+                        failed += 1
                     else:
                         senddoc = props.ocppDocs[f"{recv[2]}Response"]
                         senddoc[1] = recv[1]
@@ -160,6 +166,8 @@ class Charger :
                     recv = await self.sendDocs(c)
                     if self.checkSchema(f"{c[0]}Response", recv[2]) == False:
                         logger.error(f"Fail ( Invalid testcase message from server )")
+                        failed += 1
+        logger.debug(f"Total {len(cases)} tested and {len(cases)-failed} cases success.")
 
 async def main() :
 
