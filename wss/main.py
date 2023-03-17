@@ -42,7 +42,7 @@ logger.addHandler(ch)
 
 logging.addLevelName(logging.INFO + 1, 'INFOV')
 
-# timestamp= datetime.utcnow().isoformat()
+# timestamp= datetime.now().isoformat("T", "seconds")+'Z'
 
 class Charger :
     def __init__(self):
@@ -81,6 +81,9 @@ class Charger :
         ocpp[1] = self.rmessageId
         if "transactionId" in ocpp[2] and self.transactionId > 0:
             ocpp[2]["transactionId"] = self.transactionId
+        if "timestamp" in ocpp[2] and ocpp[2]["timestamp"] == "":
+            ocpp[2]["timestamp"] = datetime.now().isoformat("T", "seconds")+'Z'
+
         await self.ws.send(json.dumps(ocpp))
         logger.info(f">> Reply {ocpp}")
         noused = await self.ws.recv()
@@ -92,11 +95,12 @@ class Charger :
         """ocpp 전문 실 데이터로 변환
         """
         import uuid
-        for c in ocpp[1].keys():
-            if c == "transactionId":
-                doc[3]["transactionId"]=self.transactionId
-            else :
-                doc[3][c] = ocpp[1][c]
+        if len(ocpp) > 1 :
+            for c in ocpp[1].keys():
+                if c == "transactionId":
+                    doc[3]["transactionId"]=self.transactionId
+                else :
+                    doc[3][c] = ocpp[1][c]
 
         doc[1] = f'{uuid.uuid4()}'
         await self.ws.send(json.dumps(doc))
@@ -120,7 +124,7 @@ class Charger :
             schema = open("./schemas/"+original+".json").read().encode('utf-8')
             jsonschema.validate(instance=target, schema=json.loads(schema))
         except jsonschema.exceptions.ValidationError as e:
-            print(e.message)
+            logger.error(f"Payload Syntax Error : {e.message}")
             return False
         return True
 
@@ -139,6 +143,7 @@ class Charger :
             "Content-Type":"application/json",
             "Cache-Control":"no-cache",
         }
+        logger.info(f"== Send Request : {reqdoc}")
         response = requests.post(rest_url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
 
     async def runcase(self, cases):
