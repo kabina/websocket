@@ -181,7 +181,7 @@ class Charger :
                         logger.error(f"Fail ( Invalid testcase message from server )")
                         scases.append(case)
 
-        logger.debug(f"Total {len(cases)} cases tested and {len(scases)} cases succeed. Failed cases are as follows")
+        logger.debug(f"Total {len(cases)} cases tested and {len(cases)-len(scases)} cases succeed. Failed cases are as follows")
         logger.debug("==========================================================================")
         for c in scases:
             logger.debug(f"{c}")

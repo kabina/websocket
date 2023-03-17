@@ -1,9 +1,11 @@
+import datetime
+
 TC = {
-    "TC_000_BOOT" : [
-        ["BootNotification", {}],
-        ["StatusNotification", {"status": "Available"}],
-        ["Authorize", {"idTag": "1031040000069641"}]
-    ],
+    # "TC_000_BOOT" : [
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Available"}],
+    #     ["Authorize", {"idTag": "1031040000069641"}]
+    # ],
     # "TC_003" : [
     #     ["BootNotification", {}],
     #     ["StatusNotification", {"status": "Available"}],
@@ -197,7 +199,7 @@ TC = {
     #      ],
     #     ["StatusNotification", {"status": "Finishing"}],
     # ],
-    # "TC_037": [
+    # "TC_037_1": [
     #     ["BootNotification", {}],
     #     ["StatusNotification", {"status": "Preparing"}],
     #     ["Authorize", {"idTag": "1031040000069641"}],
@@ -231,74 +233,204 @@ TC = {
     #     ["StatusNotification", {"status": "Finishing"}],
     #     ["StatusNotification", {"status": "Available"}],
     # ],
-    "TC_040_1": [
-        ["BootNotification", {}],
-        ["Wait", "ChangeConfiguration", {"UnknownConfigurationKey":"300"}],
-        ["Reply", "ChangeConfiguration", {"status":"NotSupported"}],
-    ],
+    # "TC_040_1": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ChangeConfiguration", {"UnknownConfigurationKey":"300"}],
+    #     ["Reply", "ChangeConfiguration", {"status":"NotSupported"}],
+    # ],
     # "TC_040_2": [
     #     ["BootNotification", {}],
     #     ["Wait", "ChangeConfiguration",{"key": "MeterValueSampleInterval", "value": "-1"}],
     #     ["Reply", "ChangeConfiguration", {"status": "Rejected"}],
     # ],
-    "TC_042_1": [
+    # "TC_042_1": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "GetLocalListVersion"],
+    #     ["Reply", "GetLocalListVersion", {"listVersion":-1}],
+    # ],
+    # "TC_042_2": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "GetLocalListVersion"],
+    #     ["Reply", "GetLocalListVersion", {"listVersion":0}],
+    # ],
+    # "TC_043_1": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "SendLocalList", {"updateType": "Full" }],
+    #     ["Reply", "SendLocalList", {"status": "NotSupported"}],
+    # ],
+    # "TC_043_3": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "SendLocalList", {"updateType": "Full"}],
+    #     ["Reply", "SendLocalList", {"status": "Failed"}],
+    # ],
+    # "TC_043_4": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "SendLocalList", {"updateType": "Full"}],
+    #     ["Reply", "SendLocalList", {"status": "Accepted"}],
+    # ],
+    # "TC_043_5": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "SendLocalList", {"updateType": "Differential"}],
+    #     ["Reply", "SendLocalList", {"status": "Accepted"}],
+    # ],
+    # "TC_044_1": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "UpdateFirmware", {"location": "https://s3~~~~", "retrieveDate": "2023-04-15T10:15:00Z" }],
+    #     ["Reply", "UpdateFirmware"],
+    #     ["StatusNotification", {"status": "Unavailable"}],
+    #     ["FirmwareStatusNotification", {"status": "Downloading"}],
+    #     ["FirmwareStatusNotification", {"status": "Downloaded"}],
+    #     ["FirmwareStatusNotification", {"status": "Installing"}],
+    #     ["StatusNotification", {"status": "Unavailable"}],
+    #     ["FirmwareStatusNotification", {"status": "Installed"}],
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_044_2": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "UpdateFirmware", {"location": "ftp://google.com", "retrieveDate": "2023-04-15T10:15:00Z"}],
+    #     ["Reply", "UpdateFirmware"],
+    #     ["StatusNotification", {"status": "Unavailable"}],
+    #     ["FirmwareStatusNotification", {"status": "Downloading"}],
+    #     ["FirmwareStatusNotification", {"status": "Downloaded"}],
+    #     ["FirmwareStatusNotification", {"status": "Installing"}],
+    #     ["StatusNotification", {"status": "Unavailable"}],
+    #     ["FirmwareStatusNotification", {"status": "Installed"}],
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_044_3": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "UpdateFirmware", {"location": "file://google.com", "retrieveDate": "2023-04-15T10:15:00Z"}],
+    #     ["Reply", "UpdateFirmware"],
+    #     ["StatusNotification", {"status": "Unavailable"}],
+    #     ["FirmwareStatusNotification", {"status": "Downloading"}],
+    #     ["FirmwareStatusNotification", {"status": "Downloaded"}],
+    #     ["FirmwareStatusNotification", {"status": "Installing"}],
+    #     ["StatusNotification", {"status": "Unavailable"}],
+    #     ["FirmwareStatusNotification", {"status": "InstallationFailed"}],
+    #     ["BootNotification", {}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_045_1": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "GetDiagnostics", {
+    #         "startTime":datetime.datetime.now().isoformat(),
+    #         "stopTime": (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat()}],
+    #     ["Reply", "GetDiagnostics"],
+    #     ["DiagnosticsStatusNotification", {"status":"Uploading"}],
+    #     ["DiagnosticsStatusNotification", {"status":"Uploaded"}],
+    # ],
+    # "TC_045_2": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "GetDiagnostics", {
+    #         "location":"",
+    #         "startTime": datetime.datetime.now().isoformat(),
+    #         "stopTime": (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat()}],
+    #     ["Reply", "GetDiagnostics"],
+    #     ["DiagnosticsStatusNotification", {"status": "Uploading"}],
+    #     ["DiagnosticsStatusNotification", {"status": "UploadFailed"}],
+    # ],
+    "TC_046": [
         ["BootNotification", {}],
-        ["Wait", "GetLocalListVersion"],
-        ["Reply", "GetLocalListVersion", {"listVersion":-1}],
+        ["Wait", "ReserveNow", {
+            "connectorId":1,
+            "expiryDate":(datetime.datetime.now() + datetime.timedelta(days=1)).isoformat(),
+            "idTag":"1031040000069641",
+            "reservationId":3213123 }],
+        ["Reply", "ReserveNow", {"status":"Accepted"}],
+        ["StatusNotification", {"status": "Reserved"}],
+        ["Authorize", {"idTag": "1031040000069642"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StartTransaction", {"reservationId": 3213123, "idTag": "1031040000069642"}],
+        ["StatusNotification", {"status": "Charging"}],
     ],
-    "TC_042_2": [
+    "TC_047": [
         ["BootNotification", {}],
-        ["Wait", "GetLocalListVersion"],
-        ["Reply", "GetLocalListVersion", {"listVersion":0}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status":"Accepted"}],
+        ["StatusNotification", {"status": "Reserved"}],
+        ["Authorize", {"idTag": "1031040000069642"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StartTransaction", {"reservationId": 3213123, "idTag": "1031040000069642"}],
+        ["StatusNotification", {"status": "Charging"}],
     ],
-    "TC_043": [
+    "TC_048_1": [
         ["BootNotification", {}],
-        ["Wait", "SendLocalList", {
-              "listVersion": 1,
-              "localAuthorizationList": [
-                {
-                  "idTag": "1031040000069641",
-                  "idTagInfo": {
-                    "expiryDate": "2023-05-31T23:59:59Z",
-                    "status": "Accepted"
-                  }
-                },
-                {
-                  "idTag": "1031040000072645",
-                  "idTagInfo": {
-                    "expiryDate": "2023-05-31T23:59:59Z",
-                    "status": "Accepted"
-                  }
-                },
-                {
-                  "idTag": "1031040000054551",
-                  "idTagInfo": {
-                    "expiryDate": "2023-05-31T23:59:59Z",
-                    "status": "Accepted"
-                  }
-                }
-              ],
-              "updateType": "Full"
-            }],
-        ["Reply", "SendLocalList", {"status": "NotSupported"}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Faulted"}],
     ],
-    "TC_044_1": [
+    "TC_048_2": [
         ["BootNotification", {}],
-        ["Wait", "UpdateFirmware", {"location": "https://s3~~~~", "retrieveDate": "2023-04-15T10:15:00Z" }],
-        ["Reply", "UpdateFirmware"],
-        ["StatusNotification", {"status": "Unavailable"}],
-        ["FirmwareStatusNotification", {"status": "Downloading"}],
-        ["FirmwareStatusNotification", {"status": "Downloaded"}],
-        ["FirmwareStatusNotification", {"status": "Installing"}],
-        ["StatusNotification", {"status": "Unavailable"}],
-        ["FirmwareStatusNotification", {"status": "Installed"}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Occupied"}],
+    ],
+    "TC_048_3": [
         ["BootNotification", {}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Unavailable"}],
+    ],
+    "TC_048_4": [
+        ["BootNotification", {}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Rejected"}],
+    ],
+    "TC_049": [
+        ["BootNotification", {}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 0,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Reserved"}],
+    ],
+    "TC_051": [
+        ["BootNotification", {}],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Accepted"}],
+        ["StatusNotification", {"status": "Reserved"}],
+        ["Wait", "CancelReservation", {
+            "reservationId": 3213123}],
+        ["Reply", "CancelReservation", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Available"}],
     ],
-    "TC_045": [
+    "TC_052": [
         ["BootNotification", {}],
-        ["Wait", "GetDiagnostics"],
-        ["Reply", "GetDiagnostics"],
+        ["Wait", "ReserveNow", {
+            "connectorId": 1,
+            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+            "idTag": "1031040000069641",
+            "reservationId": 3213123}],
+        ["Reply", "ReserveNow", {"status": "Accepted"}],
+        ["StatusNotification", {"status": "Reserved"}],
+        ["Wait", "CancelReservation", {
+            "reservationId": 3213124}],
+        ["Reply", "CancelReservation", {"status": "Rejected"}],
+        ["StatusNotification", {"status": "Available"}],
     ],
 }
 ocppDocs = {
@@ -542,6 +674,54 @@ ocppDocs = {
         "321312312",
         {
             "filename": "filename_diagnostics"
+        }
+    ],
+    "DiagnosticsStatusNotification": [
+        2,
+        "321312312",
+        "DiagnosticsStatusNotification",
+        {
+            "type": "Idle"
+        }
+    ],
+    "DiagnosticsStatusNotificationResponse": [
+        3,
+        "321312312",
+        {
+            "type": "Idle"
+        }
+    ],
+    "ReserveNow": [
+        2,
+        "321312312",
+        "ReserveNow",
+        {
+            "connectorId":1,
+            "expiryDate":"",
+            "idTag":"1031040000069642",
+            "reservationId":""
+        }
+    ],
+    "ReserveNowResponse": [
+        3,
+        "321312312",
+        {
+            "status":""
+        }
+    ],
+    "CancelReservation": [
+        2,
+        "321312312",
+        "CancelReservation",
+        {
+            "reservationId": ""
+        }
+    ],
+    "CancelReservationResponse": [
+        2,
+        "321312312",
+        {
+            "status": ""
         }
     ],
 }
