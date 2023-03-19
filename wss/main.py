@@ -79,6 +79,8 @@ class MyApp(tk.Tk):
                 return False
 
             return True
+
+
         def tcload_callback():
             try :
                 en_log.delete(0, END)
@@ -140,20 +142,19 @@ class MyApp(tk.Tk):
                             cid=en_cid.get(),
                             result=self.TC_result,
                             )
+            TC_update()
             charger = Charger(config)
             await charger.conn()
             en_log.delete(0, END)
             en_status.delete(0, END)
             en_status.insert(0, "Running")
+
             #target_tc = {tc:self.TC[tc] for tc in self.TC_selected} if len(self.TC_selected)>0 else self.TC
 
             await charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
             en_status.delete(0, END)
             en_status.insert(0, "Test Finished")
 
-
-        for item in props.TC.keys():
-            lst_cases.insert(END, item )
 
 
 
@@ -250,7 +251,6 @@ class MyApp(tk.Tk):
         en_idtag2 = Entry(frameConfTop)
         lb_idtag3 = Label(frameConfTop, text="idTag3", width=20)
         en_idtag3 = Entry(frameConfTop)
-        vcmd = (self.window.register(enter_only_digits), '%P', '%d')
 
         lb_idtag1.grid(row=0, column=0)
         lb_idtag2.grid(row=1, column=0)
@@ -284,7 +284,7 @@ class MyApp(tk.Tk):
             w = event.widget
             self.TC_selected ={}
             for s in w.curselection():
-                self.TC_selected[w.get(s).split()[0]] =self.TC[w.get(s).split()[0]]
+                self.TC_selected[w.get(s).split()[0]] = self.TC[w.get(s).split()[0]]
             if w.curselection() :
                 index = int(w.curselection()[0])
                 en_log.delete(0,END)
@@ -293,7 +293,7 @@ class MyApp(tk.Tk):
                 txt_tc.delete(1.0,END)
                 text = self.TC[value.split()[0]]
                 txt_tc.insert(END, json.dumps(text, indent=2))
-        def onChangeConfig(event):
+        def TC_update():
             from datetime import timedelta
             ctime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
             try :
@@ -317,13 +317,30 @@ class MyApp(tk.Tk):
                 vtmp = ''.join(c for c in self.ConfV[v].get() if c.isdigit())
                 self.ConfV[v].delete(0,END)
                 self.ConfV[v].insert(0,vtmp)
+        def load_default_tc():
+            try :
+                en_log.delete(0, END)
+                self.TC = json.loads(open("./props.json", encoding='utf-8').read())
+                self.init_result()
+            except Exception as err:
+                en_log.insert(0, "Please Check your TC json file.")
+                return
+            lst_cases.delete(0,END)
+            for item in self.TC.keys():
+                lst_cases.insert(END, item )
+
+        """props.json 파일(기본TC파일) 로드"""
+        load_default_tc()
 
         en_sno.bind('<KeyRelease>', wssRenew)
         en_mdl.bind('<KeyRelease>', wssRenew)
         lst_cases.bind('<<ListboxSelect>>', onSelect)
-        en_idtag1.bind('<KeyRelease>', onChangeConfig)
-        en_idtag2.bind('<KeyRelease>', onChangeConfig)
-        en_idtag3.bind('<KeyRelease>', onChangeConfig)
+        # en_idtag1.bind('<KeyRelease>', onChangeConfig)
+        # en_idtag2.bind('<KeyRelease>', onChangeConfig)
+        # en_idtag3.bind('<KeyRelease>', onChangeConfig)
+        # en_timestamp2.bind('<KeyRelease>', onChangeConfig)
+        # en_timestamp3.bind('<KeyRelease>', onChangeConfig)
+
         def set_time_label():
             from datetime import datetime
             currentTime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
@@ -331,8 +348,7 @@ class MyApp(tk.Tk):
             en_timestamp1.insert(0, currentTime)
             self.window.after(1, set_time_label)
 
-        en_timestamp2.bind('<KeyRelease>', onChangeConfig)
-        en_timestamp3.bind('<KeyRelease>', onChangeConfig)
+
         set_time_label()
         async_mainloop(self.window)
 def main(async_loop):

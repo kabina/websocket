@@ -313,8 +313,8 @@
      "TC_045_1": [
          ["BootNotification", {}],
          ["Wait", "GetDiagnostics", {
-             "startTime":"$ctime+$interval1",
-             "stopTime": "$ctime+$interval1"}],
+             "startTime":"$ctime",
+             "stopTime": "$ctime+$interval2"}],
          ["Reply", "GetDiagnostics"],
          ["DiagnosticsStatusNotification", {"status":"Uploading"}],
          ["DiagnosticsStatusNotification", {"status":"Uploaded"}]
@@ -323,8 +323,8 @@
          ["BootNotification", {}],
          ["Wait", "GetDiagnostics", {
              "location":"",
-             "startTime": "$ctime+$interval1",
-             "stopTime": "$ctime+$interval1"}],
+             "startTime": "$ctime",
+             "stopTime": "$ctime+$interval2"}],
          ["Reply", "GetDiagnostics"],
          ["DiagnosticsStatusNotification", {"status": "Uploading"}],
          ["DiagnosticsStatusNotification", {"status": "UploadFailed"}]

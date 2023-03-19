@@ -219,13 +219,13 @@ class Charger() :
                     recv = await self.waitMessages()
                     if recv == None :
                         scases.append(case)
-                        result = "None response from server. test case failed"
+                        result = " None response from server. test case failed"
                         self.log(result , attr='red')
                         self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
 
                         break
                     if self.checkSchema(c[1], recv[3]) == False:
-                        result = f"Fail ( Invalid testcase message from server, expected ({c[1]}) received ({recv[2]})"
+                        result = f" Fail ( Invalid testcase message from server, expected ({c[1]}) received ({recv[2]})"
                         self.log(result, attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
@@ -240,7 +240,7 @@ class Charger() :
                 else :
                     recv = await self.sendDocs(c)
                     if self.checkSchema(f"{c[0]}Response", recv[2]) == False:
-                        result = f"Fail ( Invalid testcase message from server )"
+                        result = f" Fail ( Invalid testcase message from server )"
                         self.log(result , attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
