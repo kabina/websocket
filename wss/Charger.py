@@ -159,7 +159,8 @@ class Charger() :
         # 후처리
         if ocpp[0]=="StartTransaction" and recv[0] == 3:
             self._transactionId = recv[2]["transactionId"]
-            self.en_tr.set(recv[2]["transactionId"])
+            self.en_tr.delete(0,END)
+            self.en_tr.insert(0,recv[2]["transactionId"])
         return recv
 
     def checkSchema(self, original, target):
@@ -191,6 +192,7 @@ class Charger() :
             "Content-Type":"application/json",
             "Cache-Control":"no-cache",
         }
+        self.log(f" DATA To Server >> {reqdoc} ...", attr='green')
         response = requests.post(rest_url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
 
     async def runcase(self, cases):

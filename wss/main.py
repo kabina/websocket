@@ -176,12 +176,15 @@ class MyApp(tk.Tk):
         txt_tc.grid(row=5, column=3)
        # txt_tc.config(state=tk.DISABLED)
 
-        lb_cid = Label(frameTop, text="충전기ID")
+        lb_sno = Label(frameTop, text="충전기ID")
         lb_mdl = Label(frameTop, text="모델ID")
+        lb_cid = Label(frameTop, text="충전기CID", width=10)
+        en_sno = Entry(frameTop)
+        en_sno.insert(0, "EVSCA070007")
         en_cid = Entry(frameTop)
-        en_cid.insert(0, "EVSCA070007")
+        en_cid.insert(0, "114100003031A")
 
-        lb_url_comp = Label(frameTop, text=en_url.get()+"/"+en_mdl.get()+"/"+en_cid.get())
+        lb_url_comp = Label(frameTop, text=en_url.get()+"/"+en_mdl.get()+"/"+en_sno.get())
 
         en_log = Entry(frameTop)
 
@@ -198,7 +201,7 @@ class MyApp(tk.Tk):
         lb_tc = Label(frameTop, text="Current TC", width=10)
         en_tc = Entry(frameTop)
 
-        lb_cid.grid(row=0, column=0, sticky="we")
+        lb_sno.grid(row=0, column=0, sticky="we")
         lb_mdl.grid(row=1, column=0, sticky="we")
         lb_url.grid(row=2, column=0, sticky="we")
         lb_rest_url.grid(row=4, column=0, sticky="we")
@@ -206,7 +209,7 @@ class MyApp(tk.Tk):
         lb_cases.grid(row=5, column=0, sticky="we")
         lb_log.grid(row=6, column=0, sticky="we")
 
-        en_cid.grid(row=0, column=1, sticky="we")
+        en_sno.grid(row=0, column=1, sticky="we")
         en_mdl.grid(row=1, column=1, sticky="we")
         en_url.grid(row=2, column=1, sticky="we")
         lb_url_comp.grid(row=3, column=1, sticky="w")
@@ -216,14 +219,16 @@ class MyApp(tk.Tk):
         lst_cases.grid(row=5, column=1, sticky="we")
         en_log.grid(row=6, column=1, sticky="we")
         bt_start.grid(row=7, column=0, sticky="we")
-        lb_token.grid(row=0, column=2, sticky="we")
-        en_token.grid(row=0, column=3)
-        lb_tr.grid(row=1, column=2, sticky="we")
-        en_tr.grid(row=1, column=3)
-        lb_tc.grid(row=2, column=2, sticky="we")
-        en_tc.grid(row=2, column=3)
-        lb_status.grid(row=3, column=2, sticky="we")
-        en_status.grid(row=3, column=3)
+        lb_cid.grid(row=0, column=2, sticky="we")
+        en_cid.grid(row=0, column=3, sticky="we")
+        lb_token.grid(row=1, column=2, sticky="we")
+        en_token.grid(row=1, column=3, sticky="we")
+        lb_tr.grid(row=2, column=2, sticky="we")
+        en_tr.grid(row=2, column=3, sticky="we")
+        lb_tc.grid(row=3, column=2, sticky="we")
+        en_tc.grid(row=3, column=3, sticky="we")
+        lb_status.grid(row=4, column=2, sticky="we")
+        en_status.grid(row=4, column=3, sticky="we")
 
 
         lb_txt = Label(frameBot, text="실행로그", width=10)
@@ -274,7 +279,7 @@ class MyApp(tk.Tk):
 
         def wssRenew(event):
             #text = event.widget.get()
-            lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_cid.get())
+            lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_sno.get())
         def onSelect(event):
             w = event.widget
             self.TC_selected ={}
@@ -313,7 +318,7 @@ class MyApp(tk.Tk):
                 self.ConfV[v].delete(0,END)
                 self.ConfV[v].insert(0,vtmp)
 
-        en_cid.bind('<KeyRelease>', wssRenew)
+        en_sno.bind('<KeyRelease>', wssRenew)
         en_mdl.bind('<KeyRelease>', wssRenew)
         lst_cases.bind('<<ListboxSelect>>', onSelect)
         en_idtag1.bind('<KeyRelease>', onChangeConfig)
