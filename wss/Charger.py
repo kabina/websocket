@@ -108,6 +108,9 @@ class Charger() :
         self.en_tr.delete(0, END)
         self.en_tr.insert(0,"Not In Transaction")
 
+    async def close(self):
+        self.ws.close()
+
     async def waitMessages(self):
 
         try :

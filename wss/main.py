@@ -14,7 +14,6 @@ from tkinter import ttk
 import tkinter.filedialog as fd
 from datetime import datetime
 import sys
-sys.setrecursionlimit(10**6)
 
 class MyApp(tk.Tk):
 
@@ -34,12 +33,29 @@ class MyApp(tk.Tk):
         self.TC_result = []
         self.initUI()
         self.ConfV = {}
+        self.config = None
+        self.charger = None
+        self.status = None
 
     def init_result(self):
         self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
 
+
     def initUI(self):
-        
+        def config_update():
+            self.config = Config(wss_url=lb_url_comp["text"],
+                            rest_url=en_rest_url.get(),
+                            auth_token=en_token.get(),
+                            en_status=en_status,
+                            en_tr=en_tr,
+                            en_tc=en_tc,
+                            lst_cases=lst_cases,
+                            txt_recv=txt_recv,
+                            cid=en_cid.get(),
+                            result=self.TC_result,
+                            )
+            self.status = 1
+
         ConfRV = {}
         def tc_render(adict, k):
             import datetime
@@ -57,7 +73,7 @@ class MyApp(tk.Tk):
                     tc_render(l, k)
 
         import tkinter.ttk
-        from tkinter import Label, Entry, Button, scrolledtext, Listbox
+        from tkinter import Label, Entry, Button, scrolledtext, Listbox, messagebox
 
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
         self.window.geometry("1024x768+800+800")
@@ -71,15 +87,6 @@ class MyApp(tk.Tk):
         frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=20, pady=20)
         frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
         lst_cases = Listbox(frameTop, height=10, selectmode="extended", activestyle="none")
-
-        self.TC = props.TC
-        self.init_result()
-        def enter_only_digits(self, entry, action_type) -> bool:
-            if action_type == '1' and not entry.isdigit():
-                return False
-
-            return True
-
 
         def tcload_callback():
             try :
@@ -128,35 +135,38 @@ class MyApp(tk.Tk):
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
         logger.addHandler(text_handler)
+        self.status = 0
+        async def connEvent():
+            config_update()
+            TC_update()
+            self.charger = Charger(self.config)
+            await self.charger.conn()
+            self.status = 1
 
         async def startEvent():
+            if self.status == 0:
+                messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
+                #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
+                return
 
-            config = Config(wss_url = lb_url_comp["text"],
-                            rest_url = en_rest_url.get(),
-                            auth_token=en_token.get(),
-                            en_status=en_status,
-                            en_tr = en_tr,
-                            en_tc = en_tc,
-                            lst_cases = lst_cases,
-                            txt_recv=txt_recv,
-                            cid=en_cid.get(),
-                            result=self.TC_result,
-                            )
+            config_update()
             TC_update()
-            charger = Charger(config)
-            await charger.conn()
             en_log.delete(0, END)
             en_status.delete(0, END)
             en_status.insert(0, "Running")
 
-            #target_tc = {tc:self.TC[tc] for tc in self.TC_selected} if len(self.TC_selected)>0 else self.TC
-
-            await charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
+            await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
             en_status.delete(0, END)
             en_status.insert(0, "Test Finished")
+            status=1
 
-
-
+        async def closeEvent():
+            if self.status == 0:
+                messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
+                #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
+                return
+            await self.charger.close()
+            status=0
 
         lb_log = Label(frameTop, text="로그", width=10)
 
@@ -189,7 +199,10 @@ class MyApp(tk.Tk):
 
         en_log = Entry(frameTop)
 
-        bt_start = Button(frameTop, text="시작", command=async_handler(startEvent))
+        bt_conn = Button(frameTop, text="소켓연결", command=async_handler(connEvent))
+        bt_start = Button(frameTop, text="TC실행", command=async_handler(startEvent))
+        bt_close = Button(frameTop, text="소켓종료", command=async_handler(closeEvent))
+
         lb_token = Label(frameTop, text="Auth Token")
         lb_tr = Label(frameTop, text="transactionId", width=10)
         en_tr = Entry(frameTop)
@@ -219,7 +232,9 @@ class MyApp(tk.Tk):
 
         lst_cases.grid(row=5, column=1, sticky="we")
         en_log.grid(row=6, column=1, sticky="we")
-        bt_start.grid(row=7, column=0, sticky="we")
+        bt_conn.grid(row=7, column=0, sticky="we")
+        bt_start.grid(row=8, column=0, sticky="we")
+        bt_close.grid(row=9, column=0, sticky="we")
         lb_cid.grid(row=0, column=2, sticky="we")
         en_cid.grid(row=0, column=3, sticky="we")
         lb_token.grid(row=1, column=2, sticky="we")
@@ -261,9 +276,9 @@ class MyApp(tk.Tk):
         en_idtag3.grid(row=2, column=1)
         lb_timestamp1 = Label(frameConfTop, text="$ctime", width=25)
         en_timestamp1 = Entry(frameConfTop)
-        lb_timestamp2 = Label(frameConfTop, text="$ctime+$interval1) - seconds", width=25)
+        lb_timestamp2 = Label(frameConfTop, text="($ctime+$interval1) - seconds", width=25)
         en_timestamp2 = Entry(frameConfTop)
-        lb_timestamp3 = Label(frameConfTop, text="$ctime+$interval2) - seconds", width=25)
+        lb_timestamp3 = Label(frameConfTop, text="($ctime+$interval2) - seconds", width=25)
         en_timestamp3 = Entry(frameConfTop)
         lb_timestamp1.grid(row=0, column=2)
         lb_timestamp2.grid(row=1, column=2)
@@ -328,6 +343,7 @@ class MyApp(tk.Tk):
             lst_cases.delete(0,END)
             for item in self.TC.keys():
                 lst_cases.insert(END, item )
+            self.init_result()
 
         """props.json 파일(기본TC파일) 로드"""
         load_default_tc()
