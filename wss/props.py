@@ -1,56 +1,54 @@
-import datetime
-
 TC = {
-    # "TC_000_BOOT" : [
-    #     ["BootNotification", {}],
-    #     ["StatusNotification", {"status": "Available"}],
-    #     ["Authorize", {"idTag": "1031040000069641"}]
-    # ],
-    # "TC_003" : [
-    #     ["BootNotification", {}],
-    #     ["StatusNotification", {"status": "Available"}],
-    #     ["Authorize", {"idTag": "1031040000069641"}],
-    #     ["StartTransaction", {"idTag": "1031040000069641"}],
-    #     ["StatusNotification", {"status": "Charging"}],
-    #     ["MeterValues", {"transactionId":None}],
-    #     ["StopTransaction", {"transactionId": None}],
-    #     ["StatusNotification", {"status": "Finishing"}],
-    #     ["StatusNotification", {"status": "Available"}],
-    # ],
-    # "TC_004_1" : [
-    #     ["BootNotification", {}],
-    #     ["Authorize", {"idTag": "1031040000069641"}],
-    #     ["StatusNotification", {"status": "Preparing"}],
-    #     ["StartTransaction", {"idTag": "1031040000069641"}],
-    #     ["StatusNotification", {"status": "Charging"}],
-    #     ["MeterValues", {"transactionId":None}],
-    #     ["StopTransaction", {"transactionId": None}],
-    #     ["StatusNotification", {"status": "Finishing"}],
-    #     ["StatusNotification", {"status": "Available"}],
-    # ],
-    # "TC_004_2": [
-    #     ["BootNotification", {}],
-    #     ["Authorize", {"idTag": "1031040000069641"}],
-    #     ["StatusNotification", {"status": "Preparing"}],
-    #     ["StatusNotification", {"status": "Available"}],
-    # ],
-    # "TC_005_1": [
-    #     ["BootNotification", {}],
-    #     ["StatusNotification", {"status": "Preparing"}],
-    #     ["Authorize", {"idTag": "1031040000069641"}],
-    #     ["StartTransaction", {"idTag": "1031040000069641"}],
-    #     ["StatusNotification", {"status": "Charging"}],
-    #     ["MeterValues", {"transactionId":None}],
-    #     ["StatusNotification", {"status": "SuspendedEV"}],
-    #     ["StopTransaction", {"transactionId": None}],
-    #     ["StatusNotification", {"status": "Finishing"}],
-    #     ["StatusNotification", {"status": "Available"}],
-    # ],
-    # "TC_061": [
-    #     ["BootNotification", {}],
-    #     ["Wait", "Reset"],
-    #     ["Reply", "Reset"],
-    # ],
+    "TC_000_BOOT" : [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Available"}],
+        ["Authorize", {"idTag": "1031040000069641"}]
+    ],
+    "TC_003" : [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Available"}],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StartTransaction", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["MeterValues", {"transactionId":None}],
+        ["StopTransaction", {"transactionId": None}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_004_1" : [
+        ["BootNotification", {}],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StartTransaction", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["MeterValues", {"transactionId":None}],
+        ["StopTransaction", {"transactionId": None}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_004_2": [
+        ["BootNotification", {}],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_005_1": [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Authorize", {"idTag": "1031040000069641"}],
+        ["StartTransaction", {"idTag": "1031040000069641"}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["MeterValues", {"transactionId":None}],
+        ["StatusNotification", {"status": "SuspendedEV"}],
+        ["StopTransaction", {"transactionId": None}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}],
+    ],
+    "TC_061": [
+        ["BootNotification", {}],
+        ["Wait", "Reset"],
+        ["Reply", "Reset"],
+    ],
     # "TC_010": [
     #     ["BootNotification", {}],
     #     ["StatusNotification", {"status": "Preparing"}],
@@ -331,107 +329,107 @@ TC = {
     #     ["DiagnosticsStatusNotification", {"status": "Uploading"}],
     #     ["DiagnosticsStatusNotification", {"status": "UploadFailed"}],
     # ],
-    "TC_046": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId":1,
-            "expiryDate":(datetime.datetime.now() + datetime.timedelta(days=1)).isoformat(),
-            "idTag":"1031040000069641",
-            "reservationId":3213123 }],
-        ["Reply", "ReserveNow", {"status":"Accepted"}],
-        ["StatusNotification", {"status": "Reserved"}],
-        ["Authorize", {"idTag": "1031040000069642"}],
-        ["StatusNotification", {"status": "Preparing"}],
-        ["StartTransaction", {"reservationId": 3213123, "idTag": "1031040000069642"}],
-        ["StatusNotification", {"status": "Charging"}],
-    ],
-    "TC_047": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status":"Accepted"}],
-        ["StatusNotification", {"status": "Reserved"}],
-        ["Authorize", {"idTag": "1031040000069642"}],
-        ["StatusNotification", {"status": "Preparing"}],
-        ["StartTransaction", {"reservationId": 3213123, "idTag": "1031040000069642"}],
-        ["StatusNotification", {"status": "Charging"}],
-    ],
-    "TC_048_1": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Faulted"}],
-    ],
-    "TC_048_2": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Occupied"}],
-    ],
-    "TC_048_3": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Unavailable"}],
-    ],
-    "TC_048_4": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Rejected"}],
-    ],
-    "TC_049": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 0,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Reserved"}],
-    ],
-    "TC_051": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Accepted"}],
-        ["StatusNotification", {"status": "Reserved"}],
-        ["Wait", "CancelReservation", {
-            "reservationId": 3213123}],
-        ["Reply", "CancelReservation", {"status": "Accepted"}],
-        ["StatusNotification", {"status": "Available"}],
-    ],
-    "TC_052": [
-        ["BootNotification", {}],
-        ["Wait", "ReserveNow", {
-            "connectorId": 1,
-            "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
-            "idTag": "1031040000069641",
-            "reservationId": 3213123}],
-        ["Reply", "ReserveNow", {"status": "Accepted"}],
-        ["StatusNotification", {"status": "Reserved"}],
-        ["Wait", "CancelReservation", {
-            "reservationId": 3213124}],
-        ["Reply", "CancelReservation", {"status": "Rejected"}],
-        ["StatusNotification", {"status": "Available"}],
-    ],
+    # "TC_046": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId":1,
+    #         "expiryDate":(datetime.datetime.now() + datetime.timedelta(days=1)).isoformat(),
+    #         "idTag":"1031040000069641",
+    #         "reservationId":3213123 }],
+    #     ["Reply", "ReserveNow", {"status":"Accepted"}],
+    #     ["StatusNotification", {"status": "Reserved"}],
+    #     ["Authorize", {"idTag": "1031040000069642"}],
+    #     ["StatusNotification", {"status": "Preparing"}],
+    #     ["StartTransaction", {"reservationId": 3213123, "idTag": "1031040000069642"}],
+    #     ["StatusNotification", {"status": "Charging"}],
+    # ],
+    # "TC_047": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status":"Accepted"}],
+    #     ["StatusNotification", {"status": "Reserved"}],
+    #     ["Authorize", {"idTag": "1031040000069642"}],
+    #     ["StatusNotification", {"status": "Preparing"}],
+    #     ["StartTransaction", {"reservationId": 3213123, "idTag": "1031040000069642"}],
+    #     ["StatusNotification", {"status": "Charging"}],
+    # ],
+    # "TC_048_1": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Faulted"}],
+    # ],
+    # "TC_048_2": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Occupied"}],
+    # ],
+    # "TC_048_3": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Unavailable"}],
+    # ],
+    # "TC_048_4": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Rejected"}],
+    # ],
+    # "TC_049": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 0,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Reserved"}],
+    # ],
+    # "TC_051": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Accepted"}],
+    #     ["StatusNotification", {"status": "Reserved"}],
+    #     ["Wait", "CancelReservation", {
+    #         "reservationId": 3213123}],
+    #     ["Reply", "CancelReservation", {"status": "Accepted"}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
+    # "TC_052": [
+    #     ["BootNotification", {}],
+    #     ["Wait", "ReserveNow", {
+    #         "connectorId": 1,
+    #         "expiryDate": (datetime.datetime.now() + datetime.timedelta(minutes=1)).isoformat(),
+    #         "idTag": "1031040000069641",
+    #         "reservationId": 3213123}],
+    #     ["Reply", "ReserveNow", {"status": "Accepted"}],
+    #     ["StatusNotification", {"status": "Reserved"}],
+    #     ["Wait", "CancelReservation", {
+    #         "reservationId": 3213124}],
+    #     ["Reply", "CancelReservation", {"status": "Rejected"}],
+    #     ["StatusNotification", {"status": "Available"}],
+    # ],
 }
 ocppDocs = {
     "BootNotification": [
