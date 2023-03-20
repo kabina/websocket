@@ -64,6 +64,7 @@ class Config():
         self.result = kwargs["result"]
         self.confV = kwargs["confV"]
         self.en_reserve = kwargs["en_reserve"]
+        self.lst_tc = kwargs["lst_tc"]
 
 class Charger() :
     _transactionId: int
@@ -86,6 +87,7 @@ class Charger() :
         self.status = 0
         self.confV = config.confV
         self.en_reserve = config.en_reserve
+        self.lst_tc = config.lst_tc
 
     def log(self, log, attr=None):
         from datetime import datetime
@@ -113,6 +115,7 @@ class Charger() :
         self.mdl = config.mdl
         self.confV = config.confV
         self.en_reserve = config.en_reserve
+        self.lst_tc = config.lst_tc
 
     def change_list(self, case, text, attr=None, log=None):
         # idx = obj.get(0, "end").index(case.split()[0])
@@ -260,7 +263,7 @@ class Charger() :
 
         import time
         scases = []
-        failed = 0
+        step_count = 0
         self.status = 0
 
         for idx, case in enumerate(cases.keys()):
@@ -274,7 +277,9 @@ class Charger() :
             change_text(self.en_tc, case)
             ilen = len(cases[case])
             for idx2, c in enumerate(cases[case]):
-
+                self.lst_tc.itemconfig(step_count, {'fg': 'green'})
+                step_count += 1
+                self.lst_tc.see(step_count)
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
                     doc = props.ocppDocs[c[1]]

@@ -29,6 +29,7 @@ class MyApp(tk.Tk):
         self.tabs.add(self.tab1, text="TC Run")
         self.tabs.add(self.tab2, text="TC Configuration")
         self.TC = None
+        self.TC_original = None
         self.TC_selected = {}
         self.TC_result = []
         self.initUI()
@@ -58,7 +59,8 @@ class MyApp(tk.Tk):
                             mdl = en_mdl.get(),
                             result=self.TC_result,
                             confV=self.ConfV,
-                            en_reserve = en_reserve.get()
+                            en_reserve = en_reserve.get(),
+                            lst_tc = lst_tc
                             )
             self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
                           '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
@@ -97,7 +99,8 @@ class MyApp(tk.Tk):
         frameConfTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
         frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=20, pady=20)
         frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
-        lst_cases = Listbox(frameTop, height=10, selectmode="extended", activestyle="none")
+
+        lst_cases = Listbox(frameTop, height=7, selectmode="extended", activestyle="none")
 
         def tcload_callback():
             try :
@@ -127,9 +130,12 @@ class MyApp(tk.Tk):
 
 
 
-        txt_tc = scrolledtext.ScrolledText(frameTop, width=50, height=12)
-        txt_log = scrolledtext.ScrolledText(frameBot, width=127, height=9)
-        txt_recv = scrolledtext.ScrolledText(frameBot, width=127, height=15)
+        txt_tc = scrolledtext.ScrolledText(frameTop, width=50, height=15)
+        lst_tc = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", width=70)
+
+
+        txt_log = scrolledtext.ScrolledText(frameBot, width=143, height=9)
+        txt_recv = scrolledtext.ScrolledText(frameBot, width=143, height=15)
         txt_recv.tag_config('blue', foreground='blue')
         txt_recv.tag_config('green', foreground='green')
         txt_recv.tag_config('red', foreground='red')
@@ -232,7 +238,8 @@ class MyApp(tk.Tk):
         en_status.insert(0, 'Idle')
 
         lb_tc = Label(frameTop, text="Current TC", width=10)
-        en_tc = Entry(frameTop, state=tk.DISABLED)
+        en_tc = Entry(frameTop)
+        en_tc.config(state='disabled')
 
         lb_sno.grid(row=0, column=0, sticky="we")
         lb_rsno.grid(row=1, column=0, sticky="we")
@@ -270,12 +277,11 @@ class MyApp(tk.Tk):
         en_status.grid(row=5, column=3, sticky="we")
 
         lb_case.grid(row=6, column=2)
-        txt_tc.grid(row=6, column=3)
+        txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
+        lst_tc.grid(row=6, column=3, sticky="we")
 
         lb_tc.grid(row=7, column=2, sticky="we")
         en_tc.grid(row=7, column=3, sticky="we")
-
-
 
         lb_txt = Label(frameBot, text="실행로그", width=10)
         lb_recv = Label(frameBot, text="송수신로그", width=10)
@@ -323,23 +329,45 @@ class MyApp(tk.Tk):
                       '$crgr_rsno': en_rsno}
 
         def wssRenew(event):
-            #text = event.widget.get()
             lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_sno.get())
+
         def onSelect(event):
             w = event.widget
             self.TC_selected ={}
             for s in w.curselection():
                 self.TC_selected[w.get(s).split()[0]] = self.TC[w.get(s).split()[0]]
+                en_tc.config(state='normal')
                 en_tc.delete(0,END)
-                en_tc.insert(0,w.get(s).split()[0])
+                en_tc.insert(0,w.get(s).split())
+                en_tc.config(state='disabled')
             if w.curselection() :
                 index = int(w.curselection()[0])
                 en_log.delete(0,END)
                 en_log.insert(END, self.TC_result[index])
-                value = w.get(index)
-                txt_tc.delete(1.0,END)
-                text = self.TC[value.split()[0]]
-                txt_tc.insert(END, json.dumps(text, indent=2))
+                lst_tc.delete(0,END)
+                for c in self.TC_selected :
+                    for tc in self.TC_original[c]:
+                        lst_tc.insert(END, tc)
+
+        def onSelectTcItem(event):
+            w = event.widget
+
+            items= [ w.get(s) for s in w.curselection() ]
+            if not items :
+                return
+
+            text_item = {}
+            for item in items :
+                if item[0] == 'Wait' :
+                    text_item[item[1]]=props.ocppDocs[item[1]]
+                elif item[0] == 'Reply' :
+                    text_item[item[1]]=props.ocppDocs[item[1]+'Response']
+                else :
+                    text_item[item[0]]=props.ocppDocs[item[0]]
+
+            txt_tc.delete(1.0, END)
+            txt_tc.insert(END, json.dumps(text_item, indent=2))
+
         def TC_update():
             from datetime import timedelta
             ctime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
@@ -368,6 +396,7 @@ class MyApp(tk.Tk):
             try :
                 en_log.delete(0, END)
                 self.TC = json.loads(open("./props.json", encoding='utf-8').read())
+                self.TC_original = self.TC
                 self.init_result()
             except Exception as err:
                 en_log.insert(0, "Please Check your TC json file.")
@@ -375,14 +404,15 @@ class MyApp(tk.Tk):
             lst_cases.delete(0,END)
             for item in self.TC.keys():
                 lst_cases.insert(END, item )
+
             self.init_result()
 
         """props.json 파일(기본TC파일) 로드"""
         load_default_tc()
-
         en_sno.bind('<KeyRelease>', wssRenew)
         en_mdl.bind('<KeyRelease>', wssRenew)
         lst_cases.bind('<<ListboxSelect>>', onSelect)
+        lst_tc.bind('<<ListboxSelect>>', onSelectTcItem)
         # en_idtag1.bind('<KeyRelease>', onChangeConfig)
         # en_idtag2.bind('<KeyRelease>', onChangeConfig)
         # en_idtag3.bind('<KeyRelease>', onChangeConfig)
