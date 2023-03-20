@@ -43,7 +43,7 @@ class MyApp(tk.Tk):
 
     def initUI(self):
         def config_update():
-            self.config = Config(wss_url=lb_url_comp["text"],
+            self.config = Config(wss_url=en_url.get(),
                             rest_url=en_rest_url.get(),
                             auth_token=en_token.get(),
                             en_status=en_status,
@@ -52,8 +52,19 @@ class MyApp(tk.Tk):
                             lst_cases=lst_cases,
                             txt_recv=txt_recv,
                             cid=en_cid.get(),
+                            rcid = en_rcid.get(),
+                            sno = en_sno.get(),
+                            rsno = en_rsno.get(),
+                            mdl = en_mdl.get(),
                             result=self.TC_result,
+                            confV=self.ConfV,
+                            en_reserve = en_reserve.get()
                             )
+            self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
+                          '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
+                          '$ctime+$interval2': en_timestamp3, '$crgr_mdl':en_mdl, '$crgr_sno':en_sno, '$crgr_rsno':en_rsno}
+
+            #self.charger.update_config(self.config)
             self.status = 1
 
         ConfRV = {}
@@ -76,7 +87,7 @@ class MyApp(tk.Tk):
         from tkinter import Label, Entry, Button, scrolledtext, Listbox, messagebox
 
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
-        self.window.geometry("1024x768+800+800")
+        self.window.geometry("1280x1024+500+100")
         self.window.resizable(True, True)
         frameTop = LabelFrame(self.tab1, text="Configuration", padx=20, pady=20)
         frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
@@ -118,7 +129,7 @@ class MyApp(tk.Tk):
 
         txt_tc = scrolledtext.ScrolledText(frameTop, width=50, height=12)
         txt_log = scrolledtext.ScrolledText(frameBot, width=127, height=9)
-        txt_recv = scrolledtext.ScrolledText(frameBot, width=127, height=13)
+        txt_recv = scrolledtext.ScrolledText(frameBot, width=127, height=15)
         txt_recv.tag_config('blue', foreground='blue')
         txt_recv.tag_config('green', foreground='green')
         txt_recv.tag_config('red', foreground='red')
@@ -136,29 +147,26 @@ class MyApp(tk.Tk):
         logger.setLevel(logging.DEBUG)
         logger.addHandler(text_handler)
         self.status = 0
-        async def connEvent():
-            config_update()
-            TC_update()
-            self.charger = Charger(self.config)
-            await self.charger.conn()
-            self.status = 1
 
         async def startEvent():
-            if self.status == 0:
-                messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
-                #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
-                return
+            # if self.status == 0:
+            #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
+            #     #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
+            #     return
+            #
+            # self.status=0
+            bt_conn['state'] = tk.NORMAL
 
             config_update()
             TC_update()
             en_log.delete(0, END)
             en_status.delete(0, END)
             en_status.insert(0, "Running")
-
+            self.charger = Charger(self.config)
             await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
             en_status.delete(0, END)
             en_status.insert(0, "Test Finished")
-            status=1
+            bt_conn['state'] = tk.DISABLED
 
         async def closeEvent():
             if self.status == 0:
@@ -167,6 +175,9 @@ class MyApp(tk.Tk):
                 return
             await self.charger.close()
             status=0
+
+        async def stopCharger():
+            self.charger.stop()
 
         lb_log = Label(frameTop, text="로그", width=10)
 
@@ -183,68 +194,87 @@ class MyApp(tk.Tk):
         en_url.insert(0,"wss://ws.devevspcharger.uplus.co.kr/ocpp16")
         en_rest_url.insert(0, 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc')
         lb_case = Label(frameTop, text="TC Body")
-        lb_case.grid(row=5, column=2)
-        txt_tc.grid(row=5, column=3)
+
        # txt_tc.config(state=tk.DISABLED)
 
-        lb_sno = Label(frameTop, text="충전기ID")
+        lb_sno = Label(frameTop, text="충전기ID(일반)")
+        lb_rsno = Label(frameTop, text="충전기ID(예약)")
         lb_mdl = Label(frameTop, text="모델ID")
-        lb_cid = Label(frameTop, text="충전기CID", width=10)
+        lb_cid = Label(frameTop, text="충전기CID(일반)", width=13)
+        lb_rcid = Label(frameTop, text="충전기CID(예약)", width=13)
         en_sno = Entry(frameTop)
         en_sno.insert(0, "EVSCA070007")
+        en_rsno = Entry(frameTop)
+        en_rsno.insert(0, "EVSCA070008")
         en_cid = Entry(frameTop)
-        en_cid.insert(0, "114100003031A")
+        en_cid.insert(0, "115001513031A")
+        en_rcid = Entry(frameTop)
+        en_rcid.insert(0, "115001513041A")
 
         lb_url_comp = Label(frameTop, text=en_url.get()+"/"+en_mdl.get()+"/"+en_sno.get())
 
         en_log = Entry(frameTop)
 
-        bt_conn = Button(frameTop, text="소켓연결", command=async_handler(connEvent))
-        bt_start = Button(frameTop, text="TC실행", command=async_handler(startEvent))
-        bt_close = Button(frameTop, text="소켓종료", command=async_handler(closeEvent))
+        bt_conn = Button(frameTop, text="일시중지", command=async_handler(stopCharger), state=DISABLED)
+        bt_start = Button(frameTop, text="TC 실행", command=async_handler(startEvent))
+        bt_close = Button(frameTop, text="종료", command=async_handler(closeEvent))
 
         lb_token = Label(frameTop, text="Auth Token")
         lb_tr = Label(frameTop, text="transactionId", width=10)
         en_tr = Entry(frameTop)
+        en_tr['state'] = tk.DISABLED
         en_token = Entry(frameTop)
         en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
+        lb_reserve = Label(frameTop, text="reserveId", width=10)
+        en_reserve = Entry(frameTop)
         lb_status = Label(frameTop, text="Status", width=10)
         en_status = Entry(frameTop)
         en_status.insert(0, 'Idle')
 
         lb_tc = Label(frameTop, text="Current TC", width=10)
-        en_tc = Entry(frameTop)
+        en_tc = Entry(frameTop, state=tk.DISABLED)
 
         lb_sno.grid(row=0, column=0, sticky="we")
-        lb_mdl.grid(row=1, column=0, sticky="we")
-        lb_url.grid(row=2, column=0, sticky="we")
-        lb_rest_url.grid(row=4, column=0, sticky="we")
+        lb_rsno.grid(row=1, column=0, sticky="we")
+        lb_mdl.grid(row=2, column=0, sticky="we")
+        lb_url.grid(row=3, column=0, sticky="we")
+        lb_rest_url.grid(row=5, column=0, sticky="we")
 
-        lb_cases.grid(row=5, column=0, sticky="we")
-        lb_log.grid(row=6, column=0, sticky="we")
+
+        lb_log.grid(row=7, column=0, sticky="we")
 
         en_sno.grid(row=0, column=1, sticky="we")
-        en_mdl.grid(row=1, column=1, sticky="we")
-        en_url.grid(row=2, column=1, sticky="we")
-        lb_url_comp.grid(row=3, column=1, sticky="w")
-        en_rest_url.grid(row=4, column=1, sticky="we")
+        en_rsno.grid(row=1, column=1, sticky="we")
+        en_mdl.grid(row=2, column=1, sticky="we")
+        en_url.grid(row=3, column=1, sticky="we")
+        lb_url_comp.grid(row=4, column=1, sticky="w")
+        en_rest_url.grid(row=5, column=1, sticky="we")
+        lb_cases.grid(row=6, column=0, sticky="we")
+        lst_cases.grid(row=6, column=1, sticky="we")
+        en_log.grid(row=7, column=1, sticky="we")
+        bt_conn.grid(row=8, column=0, sticky="we")
+        bt_start.grid(row=9, column=0, sticky="we")
+        bt_close.grid(row=10, column=0, sticky="we")
 
-
-        lst_cases.grid(row=5, column=1, sticky="we")
-        en_log.grid(row=6, column=1, sticky="we")
-        bt_conn.grid(row=7, column=0, sticky="we")
-        bt_start.grid(row=8, column=0, sticky="we")
-        bt_close.grid(row=9, column=0, sticky="we")
         lb_cid.grid(row=0, column=2, sticky="we")
         en_cid.grid(row=0, column=3, sticky="we")
-        lb_token.grid(row=1, column=2, sticky="we")
-        en_token.grid(row=1, column=3, sticky="we")
-        lb_tr.grid(row=2, column=2, sticky="we")
-        en_tr.grid(row=2, column=3, sticky="we")
-        lb_tc.grid(row=3, column=2, sticky="we")
-        en_tc.grid(row=3, column=3, sticky="we")
-        lb_status.grid(row=4, column=2, sticky="we")
-        en_status.grid(row=4, column=3, sticky="we")
+        lb_rcid.grid(row=1, column=2, sticky="we")
+        en_rcid.grid(row=1, column=3, sticky="we")
+        lb_token.grid(row=2, column=2, sticky="we")
+        en_token.grid(row=2, column=3, sticky="we")
+        lb_tr.grid(row=3, column=2, sticky="we")
+        en_tr.grid(row=3, column=3, sticky="we")
+        lb_reserve.grid(row=4, column=2, sticky="we")
+        en_reserve.grid(row=4, column=3, sticky="we")
+        lb_status.grid(row=5, column=2, sticky="we")
+        en_status.grid(row=5, column=3, sticky="we")
+
+        lb_case.grid(row=6, column=2)
+        txt_tc.grid(row=6, column=3)
+
+        lb_tc.grid(row=7, column=2, sticky="we")
+        en_tc.grid(row=7, column=3, sticky="we")
+
 
 
         lb_txt = Label(frameBot, text="실행로그", width=10)
@@ -287,10 +317,10 @@ class MyApp(tk.Tk):
         en_timestamp2.grid(row=1, column=3)
         en_timestamp3.grid(row=2, column=3)
 
-        self.ConfV = {'$idTag1':en_idtag1, '$idTag2':en_idtag2, '$idTag3':en_idtag3,
-                      '$ctime':en_timestamp1, '$ctime+$interval1':en_timestamp2,
-                      '$ctime+$interval2':en_timestamp3}
-
+        self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
+                      '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
+                      '$ctime+$interval2': en_timestamp3, '$crgr_mdl': en_mdl, '$crgr_sno': en_sno,
+                      '$crgr_rsno': en_rsno}
 
         def wssRenew(event):
             #text = event.widget.get()
@@ -300,6 +330,8 @@ class MyApp(tk.Tk):
             self.TC_selected ={}
             for s in w.curselection():
                 self.TC_selected[w.get(s).split()[0]] = self.TC[w.get(s).split()[0]]
+                en_tc.delete(0,END)
+                en_tc.insert(0,w.get(s).split()[0])
             if w.curselection() :
                 index = int(w.curselection()[0])
                 en_log.delete(0,END)
@@ -372,5 +404,7 @@ def main(async_loop):
     me = MyApp()
 
 if __name__ == "__main__":
-    async_loop = asyncio.get_event_loop()
+    # async_loop = asyncio.get_event_loop()
+    async_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(async_loop)
     main(async_loop)

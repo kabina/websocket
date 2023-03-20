@@ -10,7 +10,7 @@ TC = {
     "TC_003" : [
         ["BootNotification", {}],
         ["StatusNotification", {"status": "Available"}],
-        ["Authorize", {"idTag": "1031040000069641"}],
+        ["Authorize", {"idTag": "1031040000069641"}, {"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "1031040000069641"}],
         ["StatusNotification", {"status": "Charging"}],
         ["MeterValues", {"transactionId":None}],
@@ -523,10 +523,10 @@ ocppDocs = {
         "19223201",
         "BootNotification",
         {
-            "chargePointModel": "ELA007C01",
+            "chargePointModel": "$crgr_mdl",
             "chargePointVendor": "EVAR",
-            # "chargePointSerialNumber": "EVSCA070007",
-            # "firmwareVersion": "0.0.13",
+            "chargePointSerialNumber": "$crgr_sno",
+            #"firmwareVersion": "0.0.13",
             # "imsi": "450061222990181"
         }
     ],
@@ -564,7 +564,7 @@ ocppDocs = {
         "StartTransaction",
         {
             "connectorId": 1,
-            "idTag": "1031040000069642",
+            "idTag": "$idTag1",
             "meterStart": 24000,
             "timestamp":datetime.datetime.utcnow().isoformat("T", "seconds")+'Z'
         }
@@ -598,6 +598,13 @@ ocppDocs = {
             "meterStop": 29000,
             "timestamp": datetime.datetime.utcnow().isoformat("T", "seconds")+'Z',
             "transactionId": 120532006
+        }
+    ],
+    "ClearCache":[
+        2,
+        "123123123",
+        "ClearCache",
+        {
         }
     ],
     "ClearCacheResponse": [
@@ -638,7 +645,7 @@ ocppDocs = {
         "321312312",
         "RemoteStartTransaction",
         {
-          "idTag": "1031040000069641"
+          "idTag": "$idTag1"
         }
     ],
     "RemoteStopTransaction": [
@@ -782,7 +789,7 @@ ocppDocs = {
         {
             "connectorId":1,
             "expiryDate":"",
-            "idTag":"1031040000069642",
+            "idTag":"$idTag1",
             "reservationId":""
         }
     ],
