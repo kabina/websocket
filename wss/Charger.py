@@ -285,7 +285,7 @@ class Charger() :
             for idx2, c in enumerate(cases[case]):
 
                 self.lst_tc.selection_clear(0, 'end')
-                self.lst_tc.select_set(idx2)
+                self.lst_tc.select_set(step_count)
                 self.lst_tc.itemconfig(step_count, {'fg': 'green'})
 
                 step_count += 1

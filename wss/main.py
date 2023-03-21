@@ -171,6 +171,11 @@ class MyApp(tk.Tk):
             en_log.delete(0, END)
             en_status.delete(0, END)
             en_status.insert(0, "Running")
+            if not self.TC_selected  :
+                for tc in self.TC_original.keys():
+                    for t in self.TC_original[tc]:
+                        lst_tc.insert(END, t)
+
             self.charger = Charger(self.config)
             await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
             en_status.delete(0, END)
