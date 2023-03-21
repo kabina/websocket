@@ -32,6 +32,7 @@ class MyApp(tk.Tk):
         self.TC_original = None
         self.TC_selected = {}
         self.TC_result = []
+        self.ocppdocs = {}
         self.initUI()
         self.ConfV = {}
         self.config = None
@@ -157,6 +158,41 @@ class MyApp(tk.Tk):
         logger.addHandler(text_handler)
         self.status = 0
 
+        def checkocpp(event):
+            import jsonschema
+            key = None
+            try:
+                doc = event.widget.get("1.0", END)
+                doc = json.loads(doc)
+                key = list(doc.keys())[0]
+                schema = open("./schemas/" + key + ".json").read().encode('utf-8')
+
+                if str(key).endswith("Response") :
+                    target =doc[key][2]
+                else:
+                    target =doc[key][3]
+
+                jsonschema.validate(instance=target, schema=json.loads(schema))
+                self.ocppdocs[key] = doc[key]
+                #bt_savetc.config(state='normal')
+                bt_savetc['state'] = tk.NORMAL
+                lb_save_notice['text'] = "전문 템플릿이 변경되었습니다. \n유지 하시려면 변경TC를 저장하십시오"
+            except jsonschema.exceptions.ValidationError as e:
+                tkinter.messagebox.showerror(title="알림", message=f"변경된 내용이 {key} 전문 형식에 맞지 않습니다. {e.message}")
+            except json.decoder.JSONDecodeError as e:
+                tkinter.messagebox.showerror(title="알림", message="변경 내용이 Json Format에 맞지 않습니다.")
+                return False
+        def saveocpp():
+            import jsonschema
+            try :
+                open("ocpp.json","w").write(json.dumps(self.ocppdocs, indent=2))
+                tkinter.messagebox.showinfo(title="성공", message="ocpp template이 저장 되었습니다.")
+                #bt_savetc.config(state='disabled')
+                bt_savetc['state'] = tk.DISABLED
+                lb_save_notice['text'] = ""
+            except Exception as e:
+                tkinter.messagebox.showerror(title="오류", message="ocpp template 저장 중 오류 발생")
+
         async def startEvent():
             # if self.status == 0:
             #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
@@ -183,15 +219,10 @@ class MyApp(tk.Tk):
             bt_conn['state'] = tk.DISABLED
 
         async def closeEvent():
-            if self.status == 0:
-                messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
-                #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
-                return
-            await self.charger.close()
-            status=0
+            self.window.destroy()
 
         async def stopCharger():
-            self.charger.stop()
+            await self.charger.close()
 
         lb_log = Label(frameTop, text="로그", width=10)
 
@@ -335,7 +366,9 @@ class MyApp(tk.Tk):
         rdo_frame = Frame(frameTop)
         rdo_frame.grid(row=12, column=0, columnspan=4, sticky="W", padx=10, pady=10)
         bt_frame = Frame(frameTop)
-        bt_frame.grid(row=13, column=0, columnspan=4, sticky="W", padx=10, pady=10)
+        bt_frame.grid(row=13, column=0, columnspan=4, sticky="we", padx=10, pady=10)
+        bt_rframe = Frame(frameTop)
+        bt_rframe.grid(row=13, column=2, columnspan=4, sticky="e", padx=10, pady=10)
         vmode = IntVar()
         lb_mode = Label(rdo_frame, text="Test Mode")
         lb_mode.grid(row=0, column=0)
@@ -344,14 +377,20 @@ class MyApp(tk.Tk):
         test_mode1.grid(row=0, column=1)
         test_mode2.grid(row=0, column=2)
         vmode.set(1)
-        bt_conn = Button(bt_frame, text="일시중지", command=async_handler(stopCharger), state=DISABLED, width=15)
+        bt_conn = Button(bt_frame, text="시험 중지", command=async_handler(stopCharger), state=DISABLED, width=15)
         bt_start = Button(bt_frame, text="TC 실행", command=async_handler(startEvent), width=15)
-        bt_reload = Button(bt_frame, text="JsonReload", width=15)
-        bt_close = Button(bt_frame, text="종료", command=async_handler(closeEvent), width=15)
+        bt_reload = Button(bt_frame, text="TC Reload", width=15)
+        bt_close = Button(bt_frame, text="시뮬레이터 종료", command=async_handler(closeEvent), width=15)
+        bt_savetc = Button(bt_rframe, text="변경TC 저장", width=15, command=saveocpp)
         bt_conn.grid(row=1, column=0, ipady=3, pady=3, sticky="w")
         bt_start.grid(row=1, column=1, ipady=3, pady=3, sticky="w")
         bt_reload.grid(row=1, column=2, ipady=3, pady=3, sticky="w")
         bt_close.grid(row=1, column=3, ipady=3, pady=3, sticky="E")
+        bt_savetc.grid(row=1, column=1, ipady=3, pady=3, sticky="WE")
+        lb_save_notice = Label(bt_rframe)
+        lb_save_notice.grid(row=1, column=0, sticky="e")
+
+        bt_savetc.config(state='disabled')
 
         self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
                       '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
@@ -361,6 +400,7 @@ class MyApp(tk.Tk):
 
         def wssRenew(event):
             lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_sno.get())
+
 
         def onSelect(event):
             w = event.widget
@@ -389,22 +429,23 @@ class MyApp(tk.Tk):
 
             text_item = {}
             for item in items :
-                if item[0] == 'Wait' :
-                    text_item[item[1]]=props.ocppDocs[item[1]]
-                elif item[0] == 'Reply' :
-                    text_item[item[1]+'Response']=props.ocppDocs[item[1]+'Response']
+                if item[0]  in ('Wait', 'Reply') :
+                    text_item[item[1]]=self.ocppdocs[item[1]]
                 else :
-                    text_item[item[0]]=props.ocppDocs[item[0]]
+                    text_item[item[0]]=self.ocppdocs[item[0]]
 
             txt_tc.delete(1.0, END)
             txt_tc.insert(END, json.dumps(text_item, indent=2))
 
-            schemas = ""
+            schemas = {}
             for msgid in text_item.keys():
-                schemas+=open(f"./schemas/{msgid}.json", encoding='utf-8').read()
-
+                with open(f"./schemas/{msgid}.json", encoding='utf-8') as fd:
+                    schemas['Request'] = json.loads(fd.read())
+                with open(f"./schemas/{msgid}Response.json", encoding='utf-8') as fd:
+                    schemas['Response'] = json.loads(fd.read())
+            # schemas = schemas
             txt_schema.delete(1.0, END)
-            txt_schema.insert(END, json.dumps(json.loads(schemas), indent=2))
+            txt_schema.insert(END, json.dumps(schemas, indent=2))
 
         def TC_update():
             from datetime import timedelta
@@ -431,12 +472,13 @@ class MyApp(tk.Tk):
                 self.ConfV[v].delete(0,END)
                 self.ConfV[v].insert(0,vtmp)
         def load_default_tc():
-            print("load_default_tc")
             try :
                 en_log.delete(0, END)
                 self.TC = json.loads(open("./props.json", encoding='utf-8').read())
                 self.TC_original = self.TC
                 self.init_result()
+                self.ocppdocs = json.loads(open("./ocpp.json", encoding='utf-8').read())
+
             except Exception as err:
                 en_log.insert(0, "Please Check your TC json file.")
                 return
@@ -460,6 +502,8 @@ class MyApp(tk.Tk):
         lst_tc.bind('<<ListboxSelect>>', onSelectTcItem)
         txt_schema.bind("<Key>", lambda e: "break")
         bt_reload.bind("<Button-1>", reload_tc)
+        #bt_savetc.bind("<Button-1>", saveocpp)
+        txt_tc.bind('<FocusOut>', checkocpp)
         # lst_tc.bind('<Enter>', onEnter)
         # en_idtag1.bind('<KeyRelease>', onChangeConfig)
         # en_idtag2.bind('<KeyRelease>', onChangeConfig)

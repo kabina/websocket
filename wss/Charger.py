@@ -281,6 +281,7 @@ class Charger() :
             self.log(f"Testing... [{case}]", attr='green')
             self.log("+===========================================================", attr='green')
             change_text(self.en_tc, case)
+            self.lst_cases.see(idx)
             ilen = len(cases[case])
             for idx2, c in enumerate(cases[case]):
 
