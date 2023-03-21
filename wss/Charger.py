@@ -65,6 +65,7 @@ class Config():
         self.confV = kwargs["confV"]
         self.en_reserve = kwargs["en_reserve"]
         self.lst_tc = kwargs["lst_tc"]
+        self.test_mode = kwargs["test_mode"]
 
 class Charger() :
     _transactionId: int
@@ -88,6 +89,7 @@ class Charger() :
         self.confV = config.confV
         self.en_reserve = config.en_reserve
         self.lst_tc = config.lst_tc
+        self.test_mode = config.test_mode
 
     def log(self, log, attr=None):
         from datetime import datetime
@@ -116,6 +118,7 @@ class Charger() :
         self.confV = config.confV
         self.en_reserve = config.en_reserve
         self.lst_tc = config.lst_tc
+        self.test_mode = config.test_mode
 
     def change_list(self, case, text, attr=None, log=None):
         # idx = obj.get(0, "end").index(case.split()[0])
@@ -155,7 +158,7 @@ class Charger() :
 
         try :
             while True:
-                message = await asyncio.wait_for(self.ws.recv(), 5)
+                message = await asyncio.wait_for(self.ws.recv(), 600)
                 message = json.loads(message)
                 self.log(f" << {message[2]}:{message}", attr='blue')
                 self.rmessageId = message[1]
@@ -238,6 +241,7 @@ class Charger() :
         if "transactionId" in doc[3] :
             doc[3]["transactionId"] = self._transactionId
         doc[1] = f'{str(uuid.uuid4())}'
+        self.convertSendDocs(doc)
         reqdoc = {
             "crgrMid":self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
             "data": doc
@@ -251,11 +255,13 @@ class Charger() :
         response = requests.post(rest_url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
 
     def recv_check(self, recv, target):
-        # print(recv[2], target)
+        # print(recv, target)
+        # if recv == target :
+        #     return (True, None)
         for t in target.keys():
             if isinstance(target[t], dict) :
                 return self.recv_check(recv[t], target[t])
-            if target[t] != recv[t]:
+            elif t in recv.keys() and target[t] != recv[t]:
                 return (False, target)
         return (True, None)
 
@@ -277,16 +283,22 @@ class Charger() :
             change_text(self.en_tc, case)
             ilen = len(cases[case])
             for idx2, c in enumerate(cases[case]):
+
+                self.lst_tc.selection_clear(0, 'end')
+                self.lst_tc.select_set(idx2)
                 self.lst_tc.itemconfig(step_count, {'fg': 'green'})
+
                 step_count += 1
                 self.lst_tc.see(step_count)
+                time.sleep(0.5)
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
-                    doc = props.ocppDocs[c[1]]
-                    if len(c) > 2:
-                        for d in c[2].keys():
-                            doc[3][d] = c[2][d]
-                    await self.callbackRequest(c[1], doc)
+                    if self.test_mode == 1:
+                        doc = props.ocppDocs[c[1]]
+                        if len(c) > 2:
+                            for d in c[2].keys():
+                                doc[3][d] = c[2][d]
+                        await self.callbackRequest(c[1], doc)
                 elif c[0] == "Reply":
                     recv = await self.waitMessages()
                     if recv == None :
@@ -327,7 +339,6 @@ class Charger() :
                             break
 
                 if idx2 == (ilen-1) :
-
                     self.change_list(case, f"{case} (Pass)", attr={'fg':'blue'}, log="Passed")
 
             await self.close()

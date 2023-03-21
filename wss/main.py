@@ -27,7 +27,7 @@ class MyApp(tk.Tk):
         self.tab1 = tkinter.ttk.Frame(self.tabs)
         self.tab2 = tkinter.ttk.Frame(self.tabs)
         self.tabs.add(self.tab1, text="TC Run")
-        self.tabs.add(self.tab2, text="TC Configuration")
+        self.tabs.add(self.tab2, text="TC Configure")
         self.TC = None
         self.TC_original = None
         self.TC_selected = {}
@@ -60,7 +60,8 @@ class MyApp(tk.Tk):
                             result=self.TC_result,
                             confV=self.ConfV,
                             en_reserve = en_reserve.get(),
-                            lst_tc = lst_tc
+                            lst_tc = lst_tc,
+                            test_mode = vmode.get()
                             )
             self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
                           '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
@@ -89,15 +90,15 @@ class MyApp(tk.Tk):
         from tkinter import Label, Entry, Button, scrolledtext, Listbox, messagebox
 
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
-        self.window.geometry("1280x1024+500+100")
+        self.window.geometry("1160x955+500+100")
         self.window.resizable(True, True)
-        frameTop = LabelFrame(self.tab1, text="Configuration", padx=20, pady=20)
-        frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
-        frameBot = LabelFrame(self.tab1, text="Log Output", padx=20, pady=20)
+        frameTop = LabelFrame(self.tab1, text="Configuration", padx=10, pady=5)
+        frameTop.pack(side="top", fill="both", expand=True, padx=10, pady=10)
+        frameBot = LabelFrame(self.tab1, text="Log Output", padx=10, pady=5)
         frameBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
-        frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=20, pady=20)
+        frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=10, pady=10)
         frameConfTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
-        frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=20, pady=20)
+        frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=10, pady=10)
         frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
 
         lst_cases = Listbox(frameTop, height=7, selectmode="extended", activestyle="none")
@@ -131,8 +132,10 @@ class MyApp(tk.Tk):
 
 
         txt_tc = scrolledtext.ScrolledText(frameTop, width=50, height=15)
+        txt_schema = scrolledtext.ScrolledText(frameTop, width=50, height=15)
+        lb_schema = Label(frameTop, text="OCPP Schema", width=10)
         lst_tc = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", width=70)
-
+        lb_txt_tc = Label(frameTop, text="OCPP Template", width=10)
 
         txt_log = scrolledtext.ScrolledText(frameBot, width=143, height=9)
         txt_recv = scrolledtext.ScrolledText(frameBot, width=143, height=15)
@@ -221,19 +224,17 @@ class MyApp(tk.Tk):
 
         en_log = Entry(frameTop)
 
-        bt_conn = Button(frameTop, text="일시중지", command=async_handler(stopCharger), state=DISABLED)
-        bt_start = Button(frameTop, text="TC 실행", command=async_handler(startEvent))
-        bt_close = Button(frameTop, text="종료", command=async_handler(closeEvent))
+
 
         lb_token = Label(frameTop, text="Auth Token")
         lb_tr = Label(frameTop, text="transactionId", width=10)
         en_tr = Entry(frameTop)
-        en_tr['state'] = tk.DISABLED
         en_token = Entry(frameTop)
         en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
         lb_reserve = Label(frameTop, text="reserveId", width=10)
         en_reserve = Entry(frameTop)
         lb_status = Label(frameTop, text="Status", width=10)
+
         en_status = Entry(frameTop)
         en_status.insert(0, 'Idle')
 
@@ -259,9 +260,9 @@ class MyApp(tk.Tk):
         lb_cases.grid(row=6, column=0, sticky="we")
         lst_cases.grid(row=6, column=1, sticky="we")
         en_log.grid(row=7, column=1, sticky="we")
-        bt_conn.grid(row=8, column=0, sticky="we")
-        bt_start.grid(row=9, column=0, sticky="we")
-        bt_close.grid(row=10, column=0, sticky="we")
+        lb_schema.grid(row=8, column=0, sticky="we")
+        txt_schema.grid(row=8, column=1, sticky="we")
+
 
         lb_cid.grid(row=0, column=2, sticky="we")
         en_cid.grid(row=0, column=3, sticky="we")
@@ -278,10 +279,13 @@ class MyApp(tk.Tk):
 
         lb_case.grid(row=6, column=2)
         txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
+        lb_txt_tc.grid(row=8, column=2, sticky="we")
+
         lst_tc.grid(row=6, column=3, sticky="we")
 
         lb_tc.grid(row=7, column=2, sticky="we")
         en_tc.grid(row=7, column=3, sticky="we")
+
 
         lb_txt = Label(frameBot, text="실행로그", width=10)
         lb_recv = Label(frameBot, text="송수신로그", width=10)
@@ -292,6 +296,7 @@ class MyApp(tk.Tk):
         s.grid(row=1, column=1, sticky='ew', columnspan=3)
         lb_recv.grid(row=2, column=0)
         txt_recv.grid(row=2, column=1, columnspan=3)
+
 
         """Configuration Tab"""
         """========================================================="""
@@ -322,11 +327,32 @@ class MyApp(tk.Tk):
         en_timestamp1.grid(row=0, column=3)
         en_timestamp2.grid(row=1, column=3)
         en_timestamp3.grid(row=2, column=3)
+        rdo_frame = Frame(frameTop)
+        rdo_frame.grid(row=12, column=0, columnspan=4, sticky="W", padx=10, pady=10)
+        bt_frame = Frame(frameTop)
+        bt_frame.grid(row=13, column=0, columnspan=4, sticky="W", padx=10, pady=10)
+        vmode = IntVar()
+        lb_mode = Label(rdo_frame, text="Test Mode")
+        lb_mode.grid(row=0, column=0)
+        test_mode1 = Radiobutton(rdo_frame, text="Local", variable=vmode, value=1)
+        test_mode2 = Radiobutton(rdo_frame, text="CSMS", variable=vmode, value=2)
+        test_mode1.grid(row=0, column=1)
+        test_mode2.grid(row=0, column=2)
+        vmode.set(1)
+        bt_conn = Button(bt_frame, text="일시중지", command=async_handler(stopCharger), state=DISABLED, width=15)
+        bt_start = Button(bt_frame, text="TC 실행", command=async_handler(startEvent), width=15)
+        bt_reload = Button(bt_frame, text="JsonReload", width=15)
+        bt_close = Button(bt_frame, text="종료", command=async_handler(closeEvent), width=15)
+        bt_conn.grid(row=1, column=0, ipady=3, pady=3, sticky="w")
+        bt_start.grid(row=1, column=1, ipady=3, pady=3, sticky="w")
+        bt_reload.grid(row=1, column=2, ipady=3, pady=3, sticky="w")
+        bt_close.grid(row=1, column=3, ipady=3, pady=3, sticky="E")
 
         self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
                       '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
                       '$ctime+$interval2': en_timestamp3, '$crgr_mdl': en_mdl, '$crgr_sno': en_sno,
                       '$crgr_rsno': en_rsno}
+
 
         def wssRenew(event):
             lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_sno.get())
@@ -361,12 +387,19 @@ class MyApp(tk.Tk):
                 if item[0] == 'Wait' :
                     text_item[item[1]]=props.ocppDocs[item[1]]
                 elif item[0] == 'Reply' :
-                    text_item[item[1]]=props.ocppDocs[item[1]+'Response']
+                    text_item[item[1]+'Response']=props.ocppDocs[item[1]+'Response']
                 else :
                     text_item[item[0]]=props.ocppDocs[item[0]]
 
             txt_tc.delete(1.0, END)
             txt_tc.insert(END, json.dumps(text_item, indent=2))
+
+            schemas = ""
+            for msgid in text_item.keys():
+                schemas+=open(f"./schemas/{msgid}.json", encoding='utf-8').read()
+
+            txt_schema.delete(1.0, END)
+            txt_schema.insert(END, json.dumps(json.loads(schemas), indent=2))
 
         def TC_update():
             from datetime import timedelta
@@ -393,6 +426,7 @@ class MyApp(tk.Tk):
                 self.ConfV[v].delete(0,END)
                 self.ConfV[v].insert(0,vtmp)
         def load_default_tc():
+            print("load_default_tc")
             try :
                 en_log.delete(0, END)
                 self.TC = json.loads(open("./props.json", encoding='utf-8').read())
@@ -406,13 +440,22 @@ class MyApp(tk.Tk):
                 lst_cases.insert(END, item )
 
             self.init_result()
+        # def onEnter(event):
+        #     index = event.widget.index("%s, %s" %(event.x, event.y))
 
         """props.json 파일(기본TC파일) 로드"""
+        def reload_tc(event) :
+            load_default_tc()
+
         load_default_tc()
+
         en_sno.bind('<KeyRelease>', wssRenew)
         en_mdl.bind('<KeyRelease>', wssRenew)
         lst_cases.bind('<<ListboxSelect>>', onSelect)
         lst_tc.bind('<<ListboxSelect>>', onSelectTcItem)
+        txt_schema.bind("<Key>", lambda e: "break")
+        bt_reload.bind("<Button-1>", reload_tc)
+        # lst_tc.bind('<Enter>', onEnter)
         # en_idtag1.bind('<KeyRelease>', onChangeConfig)
         # en_idtag2.bind('<KeyRelease>', onChangeConfig)
         # en_idtag3.bind('<KeyRelease>', onChangeConfig)

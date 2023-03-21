@@ -70,13 +70,15 @@
         ["StopTransaction", {"transactionId": "", "reason": "Remote"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_061": [
+    "TC_061_Reset": [
         ["BootNotification", {}],
         ["Wait", "Reset"],
         ["Reply", "Reset"]
     ],
-    "TC_010": [
+    "TC_010_RemoteStart_CablePluggedInFirst": [
         ["BootNotification", {}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
+        ["Reply", "GetConfiguration", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Preparing"}],
         ["Wait", "RemoteStartTransaction"],
         ["Reply", "RemoteStartTransaction"],
@@ -87,34 +89,12 @@
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_011_1": [
+    "TC_011_1_RemoteStart_RemoteStartFirst": [
         ["BootNotification", {}],
         ["Wait", "RemoteStartTransaction"],
         ["Reply", "RemoteStartTransaction"],
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Preparing"}],
-        ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
-        ["StatusNotification", {"status": "Charging"}],
-        ["Wait", "RemoteStopTransaction"],
-        ["Reply", "RemoteStopTransaction"],
-        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
-        ["StatusNotification", {"status": "Finishing"}],
-        ["StatusNotification", {"status": "Available"}]
-    ],
-    "TC_011_2": [
-        ["BootNotification", {}],
-        ["Wait", "RemoteStartTransaction"],
-        ["Reply", "RemoteStartTransaction"],
-        ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
-        ["StatusNotification", {"status": "Preparing"}],
-        ["StatusNotification", {"status": "Available"}]
-    ],
-    "TC_012": [
-        ["BootNotification", {}],
-        ["StatusNotification", {"status": "Preparing"}],
-        ["Wait", "RemoteStartTransaction"],
-        ["Reply", "RemoteStartTransaction"],
-        ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
         ["Wait", "RemoteStopTransaction"],
@@ -123,27 +103,75 @@
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_013": [
+    "TC_011_2_RemoteStart_TimeOut": [
         ["BootNotification", {}],
-        ["Wait", "Reset"],
-        ["Reply", "Reset"],
-        ["BootNotification", {}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Reply", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Preparing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_014": [
-        ["Wait", "Reset"],
-        ["Reply", "Reset"],
+    "TC_012_RemoteStop": [
         ["BootNotification", {}],
+        ["Wait", "GetConfiguration", {"key": "AuthorizeRemoteTxRequests"}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{
+                "key": "heartbeatInterval",
+                "readonly": "true"
+            }
+            ]}
+        ],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Reply", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["Wait", "RemoteStopTransaction"],
+        ["Reply", "RemoteStopTransaction"],
+        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_017_1": [
-        ["Wait", "Reset"],
-        ["Reply", "Reset"],
+    "TC_013_HardResetWithoutTransaction": [
         ["BootNotification", {}],
-        ["StatusNotification", {"status": "Available"}]
+        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Inoperative"}],
+        ["Reply", "ChangeAvailability", {"status": "Accepted"}],
+        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
+        ["Wait", "Reset", {"type": "Hard"}],
+        ["Reply", "Reset", {"status": "Accepted"}],
+        ["BootNotification", {}],
+        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
+        ["StatusNotification", {"connectorId":"1", "status": "Available"}],
+        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Operative"}],
+        ["Reply", "ChangeAvailability", {"status": "Accepted"}],
+        ["StatusNotification", {"connectorId":"1","status": "Available"}]
     ],
-    "TC_018": [
+    "TC_014_HardResetWithoutTransaction": [
         ["BootNotification", {}],
+        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Inoperative"}],
+        ["Reply", "ChangeAvailability", {"status": "Accepted"}],
+        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
+        ["Wait", "Reset", {"type": "Hard"}],
+        ["Reply", "Reset", {"status": "Accepted"}],
+        ["BootNotification", {}],
+        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
+        ["StatusNotification", {"connectorId":"1", "status": "Available"}],
+        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Operative"}],
+        ["Reply", "ChangeAvailability", {"status": "Accepted"}],
+        ["StatusNotification", {"connectorId":"1","status": "Available"}]
+    ],
+    "TC_017_1_UnlockConnector": [
+        ["Wait", "UnlockConnector"],
+        ["Reply", "UnlockConnector", {"status": "Unlocked"}]
+    ],
+    "TC_018_UnlockWithCharging": [
+        ["BootNotification", {}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [
+                    {"key": "AuthorizeRemoteTxRequests", "readonly": "true"}
+                ]
+            }
+        ],
         ["StatusNotification", {"status": "Preparing"}],
         ["Wait", "RemoteStartTransaction"],
         ["Reply", "RemoteStartTransaction"],
@@ -151,52 +179,82 @@
         ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
         ["Wait", "UnlockConnector"],
-        ["Reply", "UnlockConnector"],
-        ["StatusNotification", {"status": "Finishing"}],
+        ["Reply", "UnlockConnector", {"status": "Unlocked"}],
         ["StopTransaction", {"transactionId": "", "reason":"UnlockCommand"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_019": [
-        ["Wait", "GetConfiguration"],
-        ["Reply", "GetConfiguration"],
+    "TC_019_RetrieveConfiguration": [
+        ["Wait", "GetConfiguration", {"key": ["SupportedFeatureProfiles"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{"key": "SupportedFeatureProfiles", "readonly": "true"}], "unknownKey": {}}],
+        ["Wait", "GetConfiguration", {"key": []}],
+        ["Reply", "GetConfiguration", {"configurationKey":
+                [
+                    {"key": "AuthorizeRemoteTxRequests", "readonly": "true"},
+                    {"key": "ClockAlignedDataInterval", "readonly": "true"},
+                    {"key": "ConnectionTimeOut", "readonly": "true"}
+                ]}],
         ["StatusNotification", {"status": "Available"}]
     ],
-    "TC_021": [
+    "TC_021_ChangeSetConfiguration": [
         ["BootNotification", {}],
-        ["Wait", "ChangeConfiguration"],
-        ["Reply", "ChangeConfiguration"]
+        ["Wait", "ChangeConfiguration", {"key": "MeterValueSampleInterval","value": "300"}],
+        ["Reply", "ChangeConfiguration", {"status": "Accepted"}],
+        ["Wait", "GetConfiguration", {"key": ["MeterValueSampleInterval"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{"MeterValueSampleInterval": "300", "readonly": "true", "value": "300"}]}]
     ],
-    "TC_023": [
+    "TC_023_Except_AuthorizeFail": [
         ["BootNotification", {}],
         ["Wait", "ChangeConfiguration", {"key": "MinimumStatusDuration","value": "300"}],
-        ["Reply", "ChangeConfiguration"],
+        ["Reply", "ChangeConfiguration", {"status": "Accepted"}],
         ["Wait", "ChangeConfiguration", {"key": "LocalPreAuthorize","value": "true"}],
-        ["Reply", "ChangeConfiguration"],
-        ["StatusNotification", {"status": "Available"}],
-        ["Authorize", {"idTag": "1031040000069642"},{"idTagInfo": {"status": "Invalid", "expiryDate": "2023-03-20T17:37:02Z"}}]
-    ],
-    "TC_024": [
-        ["BootNotification", {}],
-        ["Authorize", {"idTag": "$idTag1"}],
+        ["Reply", "ChangeConfiguration", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Preparing"}],
-        ["StatusNotification", {"status": "Faulted"}]
+        ["Authorize", {"idTag": "1031040000069642"},{"idTagInfo": {"status": "Invalid"}}]
     ],
-    "TC_026": [
+    "TC_024_Except_StartChargingSessionLockFailure": [
         ["BootNotification", {}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{"key":"AuthorizeRemoteTxRequests", "readonly": "true", "value": "300"}]}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Reply", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "$idTag1"}, {"status": "Accepted"}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["StatusNotification", {"status": "Faulted", "errorCode":"ConnectorLockFailure"}]
+    ],
+    "TC_026_Except_RemoteStartSessionReject": [
+        ["BootNotification", {}],
+        ["Wait", "ChangeConfiguration", {"key": "LocalPreAuthorize","value": "false"}],
+        ["Reply", "ChangeConfiguration", {"status": "Accepted"}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{"key":"AuthorizeRemoteTxRequests", "readonly": "true", "value": "300"}]}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Wait", "RemoteStartTransaction"],
+        ["Reply", "RemoteStartTransaction", {"status":"Accepted"}],
+        ["StartTransaction", {"idTag": "$idTag1"}, {"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Charging"}],
         ["Wait", "RemoteStartTransaction"],
         ["Reply", "RemoteStartTransaction", {"status":"Rejected"}]
     ],
-    "TC_028": [
+    "TC_028_Except_RemoteStopTransactionReject": [
         ["BootNotification", {}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{"key":"AuthorizeRemoteTxRequests", "readonly": "true", "value": "300"}]}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Wait", "RemoteStopTransaction"],
+        ["Reply", "RemoteStopTransaction", {"status": "Accepted"}],
+        ["Authorize", {"idTag": "$idTag1"}, {"status": "Accepted"}],
+        ["StartTransaction", {"idTag": "$idTag1"}, {"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Charging"}],
         ["Wait", "RemoteStopTransaction"],
         ["Reply", "RemoteStopTransaction", {"status": "Rejected"}]
     ],
-    "TC_030": [
+    "TC_030_UnlockFailure": [
         ["BootNotification", {}],
         ["Wait", "UnlockConnector"],
         ["Reply", "UnlockConnector", {"status": "UnlockFailed"}]
     ],
-    "TC_032": [
+    "TC_032_PowerFailure": [
         ["BootNotification", {}],
         ["StatusNotification", {"status": "Preparing"}],
         ["Wait", "RemoteStartTransaction"],
@@ -516,6 +574,37 @@
         ["StatusNotification",{"status":"Charging"}],
         ["Wait", "SetChargingProfile", {}],
         ["Reply", "SetChargingProfile", {"status": "Accepted"}]
+    ],
+    "TC_059_RemoteStart_WithChargingProfile": [
+        ["BootNotification", {}],
+        ["StatusNotification", {"status": "Preparing"}],
+        ["Wait", "RemoteStartTransaction", {
+            "connectorId": 1,
+            "chargingProfile" : {
+                "chargingProfileId": 1,
+                "stackLevel": 1,
+                "chargingProfilePurpose": "TxProfile",
+                "chargingProfileKind": "Absolute",
+                "chargingSchedule": {
+                    "duration": 300,
+                        "chargingRateUnit": "W",
+                        "chargingSchedulePeriod": [
+                            {
+                              "startPeriod": 0,
+                              "limit": 11000
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        ["Reply", "RemoteStartTransaction"],
+        ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Charging"}],
+        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StatusNotification", {"status": "Finishing"}],
+        ["StatusNotification", {"status": "Available"}]
     ],
     "TC_066": [
         ["BootNotification", {}],

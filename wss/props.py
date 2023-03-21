@@ -634,8 +634,7 @@ ocppDocs = {
         {
             "configurationKey": [{
                 "key": "heartbeatInterval",
-                "readonly": "true",
-                "value":300
+                "readonly": "true"
             }
             ]
         }
@@ -691,7 +690,7 @@ ocppDocs = {
         "321312312",
         "GetConfiguration",
         {
-            "key": ["key1"]
+            "key": [""]
         }
     ],
     "GetLocalListVersion": [
@@ -712,6 +711,21 @@ ocppDocs = {
     ],
     "ChangeConfigurationResponse": [
         3, "321312312", {"status":"Accepted"}
+    ],
+    "ChangeAvailability": [
+        2,
+        "321312312",
+        "ChangeAvailability",
+        {
+            "type": "Operative"
+        }
+    ],
+    "ChangeAvailabilityResponse": [
+        2,
+        "321312312",
+        {
+            "status": "Accepted"
+        }
     ],
     "SendLocalList": [
         2,
