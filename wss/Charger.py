@@ -290,7 +290,6 @@ class Charger() :
 
                 step_count += 1
                 self.lst_tc.see(step_count)
-                time.sleep(0.5)
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
                     if self.test_mode == 1:
