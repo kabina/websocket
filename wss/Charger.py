@@ -3,11 +3,11 @@ import logging
 
 import websockets
 import json
-import props
+import uuid
 import jsonschema
 from colorlog import ColoredFormatter
 import urllib3
-
+from datetime import datetime
 import tkinter as tk
 from tkinter import *
 
@@ -66,6 +66,8 @@ class Config():
         self.en_reserve = kwargs["en_reserve"]
         self.lst_tc = kwargs["lst_tc"]
         self.test_mode = kwargs["test_mode"]
+        self.ocppdocs = kwargs["ocppdocs"]
+        self.txt_tc = kwargs["txt_tc"]
 
 class Charger() :
     _transactionId: int
@@ -90,14 +92,33 @@ class Charger() :
         self.en_reserve = config.en_reserve
         self.lst_tc = config.lst_tc
         self.test_mode = config.test_mode
+        self.ocppdocs = config.ocppdocs
+        self.txt_tc = config.txt_tc
 
+        self.arr_messageid = {
+            "$uuid":str(uuid.uuid4()),
+            "$timestamp":datetime.now().isoformat(sep="T", timespec="seconds")
+        }
     def log(self, log, attr=None):
         from datetime import datetime
         if attr:
             self.txt_recv.tag_config(attr, foreground=attr)
         self.txt_recv.insert(END, datetime.now().isoformat() +' '+ log + '\n', attr)
         self.txt_recv.see("insert")
-
+    def tc_render(self, adict, k):
+        import datetime
+        if isinstance(adict, dict):
+            for key in adict.keys():
+                if adict[key] == k:
+                    try:
+                        adict[key] = self.confV[k]
+                    except ValueError:
+                        pass  # do nothing if the timestamp is already in the correct format
+                elif isinstance(adict[key], (dict, list)):
+                    self.tc_render(adict[key], k)
+        elif isinstance(adict, list):
+            for l in adict:
+                self.tc_render(l, k)
     def change_result(self, idx, res):
         self.result[idx] = res
 
@@ -119,6 +140,7 @@ class Charger() :
         self.en_reserve = config.en_reserve
         self.lst_tc = config.lst_tc
         self.test_mode = config.test_mode
+        self.ocppdocs = config.ocppdocs
 
     def change_list(self, case, text, attr=None, log=None):
         # idx = obj.get(0, "end").index(case.split()[0])
@@ -185,38 +207,51 @@ class Charger() :
         noused = await self.ws.recv()
         self.log(f" << Check Response for Reply |{noused}|")
 
-    def convertSendDocs(self, doc):
-        confVkey = self.confV.keys()
-        for k in doc[3].keys():
-            if isinstance(doc[3][k], (dict,list)) :
-                continue
-            elif doc[3][k] in confVkey:
-                doc[3][k] = self.confV[doc[3][k]].get()
+    def convertDocs(self, doc):
+        for k in self.confV.keys():
+            self.tc_render(doc, k)
 
-    async def sendDocs(self, ocpp) -> dict:
-        doc = props.ocppDocs[ocpp[0]]
-        """ocpp 전문 실 데이터로 변환
-        """
+        # confVkey = self.confV.keys()
+        # print(doc, confVkey)
+        # for k in doc[3].keys():
+        #     if isinstance(doc[3][k], (dict,list)) :
+        #         continue
+        #     elif doc[3][k] in confVkey:
+        #         doc[3][k] = self.confV[doc[3][k]]
+
+    def convertSendDoc(self, ocpp) -> dict:
+
+        doc = self.ocppdocs[ocpp[0]]
+        """전문 템플릿 변환"""
+        self.convertDocs(doc[3])
+
+        """TC내 지정 전문 변환"""
+        self.convertDocs(ocpp[1])
         import uuid
         for c in ocpp[1].keys():
-            if c == "transactionId":
-                doc[3]["transactionId"]=self._transactionId
-            elif c == "reservationId":
-                doc[3]["reservationId"]=self.en_reserve
-            else :
-                doc[3][c] = ocpp[1][c]
-        self.convertSendDocs(doc)
-        doc[1] = f'{str(uuid.uuid4())}'
+            doc[3][c] = ocpp[1][c]
+
+        """messageId 처리"""
+        if doc[1] in self.arr_messageid.keys() :
+            doc[1] = self.arr_messageid[doc[1]]
+        else :
+            doc[1] = f'{str(uuid.uuid4())}'
+
+        return doc
+
+    async def sendDocs(self, doc):
+
+
         await self.ws.send(json.dumps(doc))
-        #logger.info(f">> {doc[2]}:{doc}")
+
         self.log(f' >> {doc[2]}:{doc}', attr='blue')
         recv = await self.ws.recv()
-        #logger.info(f"<< {doc[2]}:{recv}")
         self.log(f' << {doc[2]}:{recv}', attr='blue')
         recv = json.loads(recv)
         # 후처리
-        if ocpp[0]=="StartTransaction" and recv[0] == 3:
+        if doc[2]=="StartTransaction" and recv[0] == 3:
             self._transactionId = recv[2]["transactionId"]
+            self.confV["$transactionId"] = recv[2]["transactionId"]
             self.en_tr.delete(0,END)
             self.en_tr.insert(0,recv[2]["transactionId"])
         return recv
@@ -228,12 +263,13 @@ class Charger() :
         :param target: 점검 대상 Json 본체
         :return: True : 규격 동일, False: 규격 다름
         """
+
         try :
             schema = open("./schemas/"+original+".json").read().encode('utf-8')
             jsonschema.validate(instance=target, schema=json.loads(schema))
         except jsonschema.exceptions.ValidationError as e:
-            return False
-        return True
+            return False, e.message
+        return True,None
 
     async def callbackRequest(self, msgType, doc):
         rest_url = self.config.rest_url
@@ -241,7 +277,7 @@ class Charger() :
         if "transactionId" in doc[3] :
             doc[3]["transactionId"] = self._transactionId
         doc[1] = f'{str(uuid.uuid4())}'
-        self.convertSendDocs(doc)
+        self.convertDocs(doc)
         reqdoc = {
             "crgrMid":self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
             "data": doc
@@ -255,9 +291,6 @@ class Charger() :
         response = requests.post(rest_url, headers=header, data= json.dumps(reqdoc), verify=False, timeout=5).json()
 
     def recv_check(self, recv, target):
-        # print(recv, target)
-        # if recv == target :
-        #     return (True, None)
         for t in target.keys():
             if isinstance(target[t], dict) :
                 return self.recv_check(recv[t], target[t])
@@ -294,7 +327,7 @@ class Charger() :
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
                     if self.test_mode == 1:
-                        doc = props.ocppDocs[c[1]]
+                        doc = self.ocppdocs[c[1]]
                         if len(c) > 2:
                             for d in c[2].keys():
                                 doc[3][d] = c[2][d]
@@ -308,23 +341,37 @@ class Charger() :
                         self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
 
                         break
-                    if self.checkSchema(c[1], recv[3]) == False:
-                        result = f" Fail ( Invalid testcase message from server, expected ({c[2]}) received ({recv[3]})"
+                    schema_check = self.checkSchema(c[1], recv[3])
+                    if not schema_check[0]:
+                        result = f" Fail ( Invalid testcase message from server, expected ({schema_check[1]})"
                         self.log(result, attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
                         break
                     else:
-                        senddoc = props.ocppDocs[f"{recv[2]}Response"]
+                        senddoc = self.ocppdocs[f"{recv[2]}Response"]
                         senddoc[1] = recv[1]
                         if len(c)>2 :
                             for d in c[2].keys() :
                                 senddoc[2][d]=c[2][d]
                         await self.sendReply(senddoc)
                 else :
-                    recv = await self.sendDocs(c)
-                    if not self.checkSchema(f"{c[0]}Response", recv[2]):
-                        result = f" Fail ( Invalid testcase message from server )"
+
+                    doc = self.convertSendDoc(c)
+                    self.txt_tc.delete(1.0, END)
+                    self.txt_tc.insert(END, json.dumps(doc, indent=2))
+
+                    schema_check = self.checkSchema(f"{c[0]}", doc[3])
+                    if not schema_check[0] :
+                        result = f" Fail ( Invalid testcase sending message from server. {schema_check[1]} )"
+                        self.log(result , attr='red')
+                        scases.append(case)
+                        self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
+                        break
+                    recv = await self.sendDocs(doc)
+                    schema_check = self.checkSchema(f"{c[0]}Response", recv[2])
+                    if not schema_check[0]:
+                        result = f" Fail ( Invalid testcase recv message from server. {schema_check[1]} )"
                         self.log(result , attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)

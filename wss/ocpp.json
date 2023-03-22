@@ -1,17 +1,18 @@
 {
   "BootNotification": [
     2,
-    "192232011",
+    "$uuid",
     "BootNotification",
     {
       "chargePointModel": "$crgr_mdl",
       "chargePointVendor": "EVAR",
-      "chargePointSerialNumber": "$crgr_sno"
+      "chargePointSerialNumber": "$crgr_sno",
+      "firmwareVersion": "0.1.0"
     }
   ],
   "StatusNotification": [
     2,
-    "19223201",
+    "$uuid",
     "StatusNotification",
     {
       "connectorId": 1,
@@ -31,10 +32,10 @@
   ],
   "Authorize": [
     2,
-    "19223201",
+    "$uuid",
     "Authorize",
     {
-      "idTag": ""
+      "idTag": "$idTag"
     }
   ],
   "StartTransaction": [
@@ -276,7 +277,7 @@
     "321312312",
     "DiagnosticsStatusNotification",
     {
-      "type": "Idle"
+      "status": "Idle"
     }
   ],
   "DiagnosticsStatusNotificationResponse": [

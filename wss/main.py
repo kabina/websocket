@@ -8,11 +8,12 @@ import tkinter as tk
 from Charger import Charger, TextHandler, Config
 
 from async_tkinter_loop import async_handler, async_mainloop
-#from tkinter import ttk
+import uuid
 from tkinter import *
 from tkinter import ttk
-import tkinter.filedialog as fd
+import tkinter.filedialog as filedialog
 from datetime import datetime
+from datetime import timedelta
 import sys
 
 class MyApp(tk.Tk):
@@ -32,6 +33,7 @@ class MyApp(tk.Tk):
         self.TC_original = None
         self.TC_selected = {}
         self.TC_result = []
+        self.org_ocppdocs = {}
         self.ocppdocs = {}
         self.initUI()
         self.ConfV = {}
@@ -62,11 +64,21 @@ class MyApp(tk.Tk):
                             confV=self.ConfV,
                             en_reserve = en_reserve.get(),
                             lst_tc = lst_tc,
-                            test_mode = vmode.get()
+                            test_mode = vmode.get(),
+                            ocppdocs = self.ocppdocs,
+                            txt_tc = txt_tc
                             )
-            self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
-                          '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
-                          '$ctime+$interval2': en_timestamp3, '$crgr_mdl':en_mdl, '$crgr_sno':en_sno, '$crgr_rsno':en_rsno}
+            interval1 = ((datetime.now() + timedelta(
+                seconds=int(en_timestamp2.get()))).isoformat(sep='T',
+                                                             timespec='seconds') + 'Z') if en_timestamp2.get() else 0
+            interval2 = ((datetime.now() + timedelta(
+                seconds=int(en_timestamp3.get()))).isoformat(sep='T',
+                                                             timespec='seconds') + 'Z') if en_timestamp3.get() else 0
+
+            self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),
+                          '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': interval1,
+                          '$ctime+$interval2': interval2, '$crgr_mdl':en_mdl.get(), '$crgr_sno':en_sno.get(),
+                          '$crgr_rsno':en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':en_tr.get(), '$reservationId':en_reserve.get()}
 
             #self.charger.update_config(self.config)
             self.status = 1
@@ -91,7 +103,7 @@ class MyApp(tk.Tk):
         from tkinter import Label, Entry, Button, scrolledtext, Listbox, messagebox
 
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
-        self.window.geometry("1160x955+500+100")
+        self.window.geometry("1160x960+500+100")
         self.window.resizable(True, True)
         frameTop = LabelFrame(self.tab1, text="Configuration", padx=10, pady=5)
         frameTop.pack(side="top", fill="both", expand=True, padx=10, pady=10)
@@ -107,7 +119,7 @@ class MyApp(tk.Tk):
         def tcload_callback():
             try :
                 en_log.delete(0, END)
-                self.TC = json.loads(open(fd.askopenfilename(initialdir=".",
+                self.TC = json.loads(open(filedialog.askopenfilename(initialdir=".",
                                          title="Select TC cases (json)",
                                          filetypes=(("Json files", "*.json"),
                                                     ("txt files", "*.txt"))),encoding="UTF-8").read())
@@ -138,7 +150,7 @@ class MyApp(tk.Tk):
         lst_tc = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", width=70)
         lb_txt_tc = Label(frameTop, text="OCPP Template", width=10)
 
-        txt_log = scrolledtext.ScrolledText(frameBot, width=143, height=9)
+        txt_log = scrolledtext.ScrolledText(frameBot, width=143, height=6)
         txt_recv = scrolledtext.ScrolledText(frameBot, width=143, height=15)
         txt_recv.tag_config('blue', foreground='blue')
         txt_recv.tag_config('green', foreground='green')
@@ -165,7 +177,8 @@ class MyApp(tk.Tk):
                 doc = event.widget.get("1.0", END)
                 doc = json.loads(doc)
                 key = list(doc.keys())[0]
-                schema = open("./schemas/" + key + ".json").read().encode('utf-8')
+                with open("./schemas/" + key + ".json") as fd:
+                    schema = fd.read().encode('utf-8')
 
                 if str(key).endswith("Response") :
                     target =doc[key][2]
@@ -173,7 +186,7 @@ class MyApp(tk.Tk):
                     target =doc[key][3]
 
                 jsonschema.validate(instance=target, schema=json.loads(schema))
-                self.ocppdocs[key] = doc[key]
+                self.org_ocppdocs[key] = doc[key]
                 #bt_savetc.config(state='normal')
                 bt_savetc['state'] = tk.NORMAL
                 lb_save_notice['text'] = "전문 템플릿이 변경되었습니다. \n유지 하시려면 변경TC를 저장하십시오"
@@ -183,13 +196,14 @@ class MyApp(tk.Tk):
                 tkinter.messagebox.showerror(title="알림", message="변경 내용이 Json Format에 맞지 않습니다.")
                 return False
         def saveocpp():
-            import jsonschema
             try :
-                open("ocpp.json","w").write(json.dumps(self.ocppdocs, indent=2))
+                with open("ocpp.json","w") as fd:
+                    fd.write(json.dumps(self.org_ocppdocs, indent=2))
                 tkinter.messagebox.showinfo(title="성공", message="ocpp template이 저장 되었습니다.")
-                #bt_savetc.config(state='disabled')
                 bt_savetc['state'] = tk.DISABLED
                 lb_save_notice['text'] = ""
+                with open("./ocpp.json", encoding='utf-8') as fd:
+                    self.ocppdocs = json.loads(fd.read())
             except Exception as e:
                 tkinter.messagebox.showerror(title="오류", message="ocpp template 저장 중 오류 발생")
 
@@ -203,7 +217,7 @@ class MyApp(tk.Tk):
             bt_conn['state'] = tk.NORMAL
 
             config_update()
-            TC_update()
+            # TC_update()
             en_log.delete(0, END)
             en_status.delete(0, END)
             en_status.insert(0, "Running")
@@ -370,9 +384,9 @@ class MyApp(tk.Tk):
         bt_rframe = Frame(frameTop)
         bt_rframe.grid(row=13, column=2, columnspan=4, sticky="e", padx=10, pady=10)
         vmode = IntVar()
-        lb_mode = Label(rdo_frame, text="Test Mode")
+        lb_mode = Label(rdo_frame, text="원격제어방법")
         lb_mode.grid(row=0, column=0)
-        test_mode1 = Radiobutton(rdo_frame, text="Local", variable=vmode, value=1)
+        test_mode1 = Radiobutton(rdo_frame, text="Rest직접호출", variable=vmode, value=1)
         test_mode2 = Radiobutton(rdo_frame, text="CSMS", variable=vmode, value=2)
         test_mode1.grid(row=0, column=1)
         test_mode2.grid(row=0, column=2)
@@ -392,11 +406,21 @@ class MyApp(tk.Tk):
 
         bt_savetc.config(state='disabled')
 
-        self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
-                      '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
-                      '$ctime+$interval2': en_timestamp3, '$crgr_mdl': en_mdl, '$crgr_sno': en_sno,
-                      '$crgr_rsno': en_rsno}
+        # self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
+        #               '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
+        #               '$ctime+$interval2': en_timestamp3, '$crgr_mdl': en_mdl, '$crgr_sno': en_sno,
+        #               '$crgr_rsno': en_rsno}
 
+        interval1 = ((datetime.now() + timedelta(
+            seconds=int(en_timestamp2.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if en_timestamp2.get() else 0
+        interval2 = ((datetime.now() + timedelta(
+            seconds=int(en_timestamp3.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if en_timestamp3.get() else 0
+
+        self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),
+                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': interval1,
+                      '$ctime+$interval2': interval2, '$crgr_mdl': en_mdl.get(), '$crgr_sno': en_sno.get(),
+                      '$crgr_rsno': en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': en_tr.get(),
+                      '$reservationId': en_reserve.get()}
 
         def wssRenew(event):
             lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_sno.get())
@@ -430,9 +454,9 @@ class MyApp(tk.Tk):
             text_item = {}
             for item in items :
                 if item[0]  in ('Wait', 'Reply') :
-                    text_item[item[1]]=self.ocppdocs[item[1]]
+                    text_item[item[1]]=self.org_ocppdocs[item[1]]
                 else :
-                    text_item[item[0]]=self.ocppdocs[item[0]]
+                    text_item[item[0]]=self.org_ocppdocs[item[0]]
 
             txt_tc.delete(1.0, END)
             txt_tc.insert(END, json.dumps(text_item, indent=2))
@@ -472,12 +496,16 @@ class MyApp(tk.Tk):
                 self.ConfV[v].delete(0,END)
                 self.ConfV[v].insert(0,vtmp)
         def load_default_tc():
+            import copy
             try :
                 en_log.delete(0, END)
-                self.TC = json.loads(open("./props.json", encoding='utf-8').read())
-                self.TC_original = self.TC
+                with open("./props.json", encoding='utf-8') as fd:
+                    self.TC = json.loads(fd.read())
+                self.TC_original = copy.deepcopy(self.TC)
                 self.init_result()
-                self.ocppdocs = json.loads(open("./ocpp.json", encoding='utf-8').read())
+                with open("./ocpp.json", encoding='utf-8') as fd:
+                    self.ocppdocs = json.loads(fd.read())
+                    self.org_ocppdocs = copy.deepcopy(self.ocppdocs)
 
             except Exception as err:
                 en_log.insert(0, "Please Check your TC json file.")
@@ -510,13 +538,23 @@ class MyApp(tk.Tk):
         # en_idtag3.bind('<KeyRelease>', onChangeConfig)
         # en_timestamp2.bind('<KeyRelease>', onChangeConfig)
         # en_timestamp3.bind('<KeyRelease>', onChangeConfig)
+        async def on_closing():
+            import sys
+            if bt_savetc['state'] == tk.NORMAL :
+                if messagebox.askokcancel("종료", "편집 중인 전문이 있습니다. 종료 하시겠습니까?"):
+                    await closeEvent()
+                else:
+                    return
+            await closeEvent()
+
+        self.window.protocol("WM_DELETE_WINDOW", async_handler(on_closing))
 
         def set_time_label():
             from datetime import datetime
             currentTime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
             en_timestamp1.delete(0, END)
             en_timestamp1.insert(0, currentTime)
-            self.window.after(1, set_time_label)
+            self.tab2.after(1, set_time_label)
 
 
         set_time_label()

@@ -1,6 +1,6 @@
 {
     "TC_000_BOOT" : [
-        ["BootNotification", {}],
+        ["BootNotification", {}, {"status": "Accepted"}],
         ["StatusNotification", {"status": "Available"}],
         ["Authorize", {"idTag": "$idTag1"}, {"idTagInfo": {"status": "Accepted"}}]
     ],
@@ -10,8 +10,8 @@
         ["Authorize", {"idTag": "$idTag1"}, {"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"}, {"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
-        ["MeterValues", {"transactionId":""}],
-        ["StopTransaction", {"transactionId": ""}, {"idTagInfo": {"status": "Accepted"}}],
+        ["MeterValues", {"transactionId":"$transactionId"}],
+        ["StopTransaction", {"transactionId": "$transactionId"}, {"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -21,8 +21,8 @@
         ["StatusNotification", {"status": "Preparing"}],
         ["StartTransaction", {"idTag": "$idTag1"}, {"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
-        ["MeterValues", {"transactionId":""}],
-        ["StopTransaction", {"transactionId": ""}, {"idTagInfo": {"status": "Accepted"}}],
+        ["MeterValues", {"transactionId":"$transactionId"}],
+        ["StopTransaction", {"transactionId": "$transactionId"}, {"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -42,9 +42,9 @@
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
-        ["MeterValues", {"transactionId":""}],
+        ["MeterValues", {"transactionId":"$transactionId"}],
         ["StatusNotification", {"status": "SuspendedEV"}],
-        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -62,12 +62,12 @@
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
-        ["MeterValues", {"transactionId":""}],
+        ["MeterValues", {"transactionId":"$transactionId"}],
         ["Wait", "RemoteStopTransaction"],
         ["Reply", "RemoteStopTransaction"],
         ["StatusNotification", {"status": "SuspendedEV"}],
         ["StatusNotification", {"status": "Finishing"}],
-        ["StopTransaction", {"transactionId": "", "reason": "Remote"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId", "reason": "Remote"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Available"}]
     ],
     "TC_061_Reset": [
@@ -85,7 +85,7 @@
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
-        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -99,7 +99,7 @@
         ["StatusNotification", {"status": "Charging"}],
         ["Wait", "RemoteStopTransaction"],
         ["Reply", "RemoteStopTransaction"],
-        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -113,7 +113,7 @@
     ],
     "TC_012_RemoteStop": [
         ["BootNotification", {}],
-        ["Wait", "GetConfiguration", {"key": "AuthorizeRemoteTxRequests"}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
         ["Reply", "GetConfiguration", {"configurationKey": [{
                 "key": "heartbeatInterval",
                 "readonly": "true"
@@ -128,37 +128,37 @@
         ["StatusNotification", {"status": "Charging"}],
         ["Wait", "RemoteStopTransaction"],
         ["Reply", "RemoteStopTransaction"],
-        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
     "TC_013_HardResetWithoutTransaction": [
         ["BootNotification", {}],
-        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Inoperative"}],
+        ["Wait", "ChangeAvailability", {"connectorId": 1, "type": "Inoperative"}],
         ["Reply", "ChangeAvailability", {"status": "Accepted"}],
-        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
+        ["StatusNotification", {"connectorId":1, "status": "Unavailable"}],
         ["Wait", "Reset", {"type": "Hard"}],
         ["Reply", "Reset", {"status": "Accepted"}],
         ["BootNotification", {}],
-        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
-        ["StatusNotification", {"connectorId":"1", "status": "Available"}],
-        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Operative"}],
+        ["StatusNotification", {"connectorId":1, "status": "Unavailable"}],
+        ["StatusNotification", {"connectorId":1, "status": "Available"}],
+        ["Wait", "ChangeAvailability", {"connectorId": 1, "type": "Operative"}],
         ["Reply", "ChangeAvailability", {"status": "Accepted"}],
-        ["StatusNotification", {"connectorId":"1","status": "Available"}]
+        ["StatusNotification", {"connectorId":1,"status": "Available"}]
     ],
     "TC_014_HardResetWithoutTransaction": [
         ["BootNotification", {}],
-        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Inoperative"}],
+        ["Wait", "ChangeAvailability", {"connectorId": 1, "type": "Inoperative"}],
         ["Reply", "ChangeAvailability", {"status": "Accepted"}],
-        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
+        ["StatusNotification", {"connectorId":1, "status": "Unavailable"}],
         ["Wait", "Reset", {"type": "Hard"}],
         ["Reply", "Reset", {"status": "Accepted"}],
         ["BootNotification", {}],
-        ["StatusNotification", {"connectorId":"1", "status": "Unavailable"}],
-        ["StatusNotification", {"connectorId":"1", "status": "Available"}],
-        ["Wait", "ChangeAvailability", {"connectorId": "1", "type": "Operative"}],
+        ["StatusNotification", {"connectorId":1, "status": "Unavailable"}],
+        ["StatusNotification", {"connectorId":1, "status": "Available"}],
+        ["Wait", "ChangeAvailability", {"connectorId": 1, "type": "Operative"}],
         ["Reply", "ChangeAvailability", {"status": "Accepted"}],
-        ["StatusNotification", {"connectorId":"1","status": "Available"}]
+        ["StatusNotification", {"connectorId":1,"status": "Available"}]
     ],
     "TC_017_1_UnlockConnector": [
         ["Wait", "UnlockConnector"],
@@ -180,7 +180,7 @@
         ["StatusNotification", {"status": "Charging"}],
         ["Wait", "UnlockConnector"],
         ["Reply", "UnlockConnector", {"status": "Unlocked"}],
-        ["StopTransaction", {"transactionId": "", "reason":"UnlockCommand"},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId", "reason":"UnlockCommand"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -266,8 +266,8 @@
         ["StatusNotification", {"status": "Unavailable"}],
         ["StopTransaction", {"idTag": "$idTag1",
             "meterStop": 29000,
-            "timestamp": "2023-02-24T07:26:57.512Z",
-            "transactionId": 120531947,
+            "timestamp": "$ctime",
+            "transactionId": "$transactionId",
             "reason": "PowerLoss",
             "transactionData": [
               {
@@ -278,7 +278,7 @@
                     "unit": "Wh"
                   }
                 ],
-                "timestamp": "2023-02-24T07:26:57.512Z"
+                "timestamp": "$ctime"
               }
             ]}
          ],
@@ -290,7 +290,7 @@
         ["Authorize", {"idTag": "$idTag1"}],
         ["StartTransaction", {"idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Charging"}],
-        ["StopTransaction", {"transactionId": "", "reason": "Local"}],
+        ["StopTransaction", {"transactionId": "$transactionId", "reason": "Local"}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -300,7 +300,7 @@
         ["Authorize", {"idTag": "$idTag1"}],
         ["StartTransaction", {"idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Charging"}],
-        ["StopTransaction", {"transactionId": "", "reason": "DeAuthorized"}],
+        ["StopTransaction", {"transactionId": "$transactionId", "reason": "DeAuthorized"}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -314,7 +314,7 @@
             }
          ],
         ["StatusNotification", {"status": "Charging"}],
-        ["StopTransaction", {"transactionId": "", "meterStop": 29000,"reason": "Local", "timestamp": "2023-02-24T07:26:57.512Z"}],
+        ["StopTransaction", {"transactionId": "$transactionId", "meterStop": 29000,"reason": "Local", "timestamp": "2023-02-24T07:26:57.512Z"}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -401,7 +401,7 @@
         ["BootNotification", {}],
         ["Wait", "GetDiagnostics", {
             "startTime":"$ctime",
-            "stopTime": "$ctime+$interval2"}],
+            "stopTime": "$ctime"}],
         ["Reply", "GetDiagnostics"],
         ["DiagnosticsStatusNotification", {"status":"Uploading"}],
         ["DiagnosticsStatusNotification", {"status":"Uploaded"}]
@@ -411,7 +411,7 @@
         ["Wait", "GetDiagnostics", {
             "location":"",
             "startTime": "$ctime",
-            "stopTime": "$ctime+$interval2"}],
+            "stopTime": "$ctime"}],
         ["Reply", "GetDiagnostics"],
         ["DiagnosticsStatusNotification", {"status": "Uploading"}],
         ["DiagnosticsStatusNotification", {"status": "UploadFailed"}]
@@ -422,12 +422,12 @@
             "connectorId":1,
             "expiryDate":"$ctime+$interval2",
             "idTag":"$idTag1",
-            "reservationId":3213123 }],
+            "reservationId":"$reservationId" }],
         ["Reply", "ReserveNow", {"status":"Accepted"}],
         ["StatusNotification", {"status": "Reserved"}],
         ["Authorize", {"idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Preparing"}],
-        ["StartTransaction", {"reservationId": 3213123, "idTag": "$idTag1"}],
+        ["StartTransaction", {"reservationId": "$reservationId", "idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Charging"}]
     ],
     "TC_047": [
@@ -441,7 +441,7 @@
         ["StatusNotification", {"status": "Reserved"}],
         ["Authorize", {"idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Preparing"}],
-        ["StartTransaction", {"reservationId": 3213123, "idTag": "$idTag1"}],
+        ["StartTransaction", {"reservationId": "$reservationId", "idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Charging"}]
     ],
     "TC_048_1": [
@@ -450,7 +450,7 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Faulted"}]
     ],
     "TC_048_2": [
@@ -459,7 +459,7 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Occupied"}]
     ],
     "TC_048_3": [
@@ -468,7 +468,7 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Unavailable"}]
     ],
     "TC_048_4": [
@@ -477,7 +477,7 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Rejected"}]
     ],
     "TC_049": [
@@ -486,7 +486,7 @@
             "connectorId": 0,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Reserved"}]
     ],
     "TC_051": [
@@ -495,11 +495,11 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Reserved"}],
         ["Wait", "CancelReservation", {
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "CancelReservation", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -509,11 +509,11 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 3213123}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Reserved"}],
         ["Wait", "CancelReservation", {
-            "reservationId": 3213124}],
+            "reservationId": "$reservationId"}],
         ["Reply", "CancelReservation", {"status": "Rejected"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -523,12 +523,12 @@
             "connectorId": 1,
             "expiryDate": "$ctime+$interval2",
             "idTag": "$idTag1",
-            "reservationId": 120532459}],
+            "reservationId": "$reservationId"}],
         ["Reply", "ReserveNow", {"status": "Accepted"}],
         ["StatusNotification", {"status": "Reserved"}],
         ["StatusNotification", {"status": "Preparing"}],
         ["Authorize", {"idTag":"1010010195158522"}],
-        ["StartTransaction", {"reservationId": 120532459, "idTag": "1010010195158522", "timestamp":"$ctime"}],
+        ["StartTransaction", {"reservationId": "$reservationId", "idTag": "1010010195158522", "timestamp":"$ctime"}],
         ["StatusNotification", {"status": "Charging"}],
         ["Authorize", {"idTag": "1010010201665544"}],
         ["StopTransaction", {}],
@@ -602,7 +602,7 @@
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Charging"}],
-        ["StopTransaction", {"transactionId": ""},{"idTagInfo": {"status": "Accepted"}}],
+        ["StopTransaction", {"transactionId": "$transactionId"},{"idTagInfo": {"status": "Accepted"}}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
