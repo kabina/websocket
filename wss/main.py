@@ -3,7 +3,8 @@ import logging
 import tkinter
 
 import json
-import props
+import copy
+import pyperclip
 import tkinter as tk
 from Charger import Charger, TextHandler, Config
 
@@ -75,7 +76,7 @@ class MyApp(tk.Tk):
                 seconds=int(en_timestamp3.get()))).isoformat(sep='T',
                                                              timespec='seconds') + 'Z') if en_timestamp3.get() else 0
 
-            self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),
+            self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),'$idTag': en_idtag1.get(),
                           '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': interval1,
                           '$ctime+$interval2': interval2, '$crgr_mdl':en_mdl.get(), '$crgr_sno':en_sno.get(),
                           '$crgr_rsno':en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':en_tr.get(), '$reservationId':en_reserve.get()}
@@ -90,7 +91,7 @@ class MyApp(tk.Tk):
                 for key in adict.keys():
                     if adict[key] == k:
                         try:
-                            adict[key] = ConfRV[k]
+                            adict[key] = self.ConfV[k]
                         except ValueError:
                             pass  # do nothing if the timestamp is already in the correct format
                     elif isinstance(adict[key], (dict, list)):
@@ -105,13 +106,15 @@ class MyApp(tk.Tk):
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
         self.window.geometry("1160x960+500+100")
         self.window.resizable(True, True)
-        frameTop = LabelFrame(self.tab1, text="Configuration", padx=10, pady=5)
-        frameTop.pack(side="top", fill="both", expand=True, padx=10, pady=10)
-        frameBot = LabelFrame(self.tab1, text="Log Output", padx=10, pady=5)
+        frameHat = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
+        frameHat.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        frameTop = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
+        frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        frameBot = LabelFrame(self.tab1, text="Log Output", padx=5, pady=5)
         frameBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
-        frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=10, pady=10)
+        frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=5, pady=5)
         frameConfTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
-        frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=10, pady=10)
+        frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=5, pady=5)
         frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
 
         lst_cases = Listbox(frameTop, height=7, selectmode="extended", activestyle="none")
@@ -143,8 +146,11 @@ class MyApp(tk.Tk):
         self.window.config(menu=menubar)
 
 
+        frame_txt_tc = Frame(frameTop, width=60, height=15)
+        frame_txt_tc_rendered = Frame(frameTop, width=60, height=15)
 
-        txt_tc = scrolledtext.ScrolledText(frameTop, width=50, height=15)
+        txt_tc = scrolledtext.ScrolledText(frame_txt_tc, width=70, height=15)
+        txt_tc_rendered = scrolledtext.ScrolledText(frame_txt_tc_rendered, width=70, height=15)
         txt_schema = scrolledtext.ScrolledText(frameTop, width=50, height=15)
         lb_schema = Label(frameTop, text="OCPP Schema", width=10)
         lst_tc = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", width=70)
@@ -248,93 +254,125 @@ class MyApp(tk.Tk):
         en_url = Entry(frameTop, width=60)
         en_rest_url = Entry(frameTop, width=60)
 
-        en_mdl = Entry(frameTop)
-        en_mdl.insert(0, "ELA007C01")
+
+
         en_url.insert(0,"wss://ws.devevspcharger.uplus.co.kr/ocpp16")
         en_rest_url.insert(0, 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc')
         lb_case = Label(frameTop, text="TC Body")
 
        # txt_tc.config(state=tk.DISABLED)
 
-        lb_sno = Label(frameTop, text="충전기ID(일반)")
-        lb_rsno = Label(frameTop, text="충전기ID(예약)")
-        lb_mdl = Label(frameTop, text="모델ID")
-        lb_cid = Label(frameTop, text="충전기CID(일반)", width=13)
-        lb_rcid = Label(frameTop, text="충전기CID(예약)", width=13)
-        en_sno = Entry(frameTop)
+        lb_sno = Label(frameHat, text="충전기ID(일반)")
+        lb_rsno = Label(frameHat, text="충전기ID(예약)")
+        lb_mdl = Label(frameHat, text="모델ID")
+
+        lb_cid = Label(frameHat, text="충전기CID(일반)", width=13)
+        lb_rcid = Label(frameHat, text="충전기CID(예약)", width=13)
+        en_sno = Entry(frameHat)
         en_sno.insert(0, "EVSCA070007")
-        en_rsno = Entry(frameTop)
+        en_rsno = Entry(frameHat)
         en_rsno.insert(0, "EVSCA070008")
-        en_cid = Entry(frameTop)
+        en_cid = Entry(frameHat)
         en_cid.insert(0, "115001513031A")
-        en_rcid = Entry(frameTop)
+        en_rcid = Entry(frameHat)
         en_rcid.insert(0, "115001513041A")
+        en_mdl = Entry(frameHat)
+        en_mdl.insert(0, "ELA007C01")
+        lb_token = Label(frameHat, text="Auth Token")
+        lb_tr = Label(frameHat, text="transactionId", width=10)
+        en_tr = Entry(frameHat)
+        en_token = Entry(frameHat)
+        en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
+        lb_reserve = Label(frameHat, text="reserveId", width=10)
+        en_reserve = Entry(frameHat)
+        lb_status = Label(frameHat, text="Status", width=10)
+        en_status = Entry(frameHat)
+        en_status.insert(0, 'Idle')
+
+        lb_sno.grid(row=0, column=0, sticky="we")
+        en_sno.grid(row=0, column=1, sticky="we")
+        lb_rsno.grid(row=0, column=2, sticky="we")
+        en_rsno.grid(row=0, column=3, sticky="we")
+        lb_cid.grid(row=0, column=4, sticky="we")
+        en_cid.grid(row=0, column=5, sticky="we")
+        lb_rcid.grid(row=0, column=6, sticky="we")
+        en_rcid.grid(row=0, column=7, sticky="we")
+
+        lb_mdl.grid(row=1, column=0, sticky="we")
+        en_mdl.grid(row=1, column=1, sticky="we")
+        lb_token.grid(row=1, column=2, sticky="we")
+        en_token.grid(row=1, column=3, sticky="we")
+        lb_tr.grid(row=1, column=4, sticky="we")
+        en_tr.grid(row=1, column=5, sticky="we")
+        lb_reserve.grid(row=1, column=6, sticky="we")
+        en_reserve.grid(row=1, column=7, sticky="we")
+        lb_status.grid(row=2, column=0, sticky="we")
+        en_status.grid(row=2, column=1, sticky="we")
+
 
         lb_url_comp = Label(frameTop, text=en_url.get()+"/"+en_mdl.get()+"/"+en_sno.get())
 
-        en_log = Entry(frameTop)
 
 
 
-        lb_token = Label(frameTop, text="Auth Token")
-        lb_tr = Label(frameTop, text="transactionId", width=10)
-        en_tr = Entry(frameTop)
-        en_token = Entry(frameTop)
-        en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
-        lb_reserve = Label(frameTop, text="reserveId", width=10)
-        en_reserve = Entry(frameTop)
-        lb_status = Label(frameTop, text="Status", width=10)
+        def show_txt_tc():
+            frame_txt_tc_rendered.grid_remove()
+            frame_txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
 
-        en_status = Entry(frameTop)
-        en_status.insert(0, 'Idle')
+        def show_txt_tc_rendered():
+            frame_txt_tc.grid_remove()
+            frame_txt_tc_rendered.grid(row=8, column=3, rowspan=3, sticky="we")
 
-        lb_tc = Label(frameTop, text="Current TC", width=10)
-        en_tc = Entry(frameTop)
-        en_tc.config(state='disabled')
 
-        lb_sno.grid(row=0, column=0, sticky="we")
-        lb_rsno.grid(row=1, column=0, sticky="we")
-        lb_mdl.grid(row=2, column=0, sticky="we")
+
         lb_url.grid(row=3, column=0, sticky="we")
         lb_rest_url.grid(row=5, column=0, sticky="we")
 
 
-        lb_log.grid(row=7, column=0, sticky="we")
-
-        en_sno.grid(row=0, column=1, sticky="we")
-        en_rsno.grid(row=1, column=1, sticky="we")
-        en_mdl.grid(row=2, column=1, sticky="we")
         en_url.grid(row=3, column=1, sticky="we")
         lb_url_comp.grid(row=4, column=1, sticky="w")
         en_rest_url.grid(row=5, column=1, sticky="we")
+        lb_tc = Label(frameTop, text="Current TC", width=13)
+        lb_tc.grid(row=5, column=2, sticky="we")
+        en_tc = Entry(frameTop)
+        en_tc.config(state='disabled')
+        en_tc.grid(row=5, column=3, sticky="we")
+
         lb_cases.grid(row=6, column=0, sticky="we")
         lst_cases.grid(row=6, column=1, sticky="we")
+        lb_log.grid(row=7, column=0, sticky="we")
+        en_log = Entry(frameTop)
         en_log.grid(row=7, column=1, sticky="we")
+
+        tc_result_rdo_frame = Frame(frameTop)
+        tc_result_rdo_frame.grid(row=7, column=3, columnspan=2, sticky="w")
+        vtc_mode = IntVar()
+        lb_tc_mode = Label(frameTop, text="TC결과상세")
+        lb_tc_mode.grid(row=7, column=2)
+        vtc_mode1 = Radiobutton(tc_result_rdo_frame, text="Doc Template", variable=vtc_mode, value=1, command=show_txt_tc)
+        vtc_mode2 = Radiobutton(tc_result_rdo_frame, text="Doc Rendered", variable=vtc_mode, value=2, command=show_txt_tc_rendered)
+        vtc_mode1.grid(row=0, column=1)
+        vtc_mode2.grid(row=0, column=2)
+        vtc_mode.set(1)
+
         lb_schema.grid(row=8, column=0, sticky="we")
         txt_schema.grid(row=8, column=1, sticky="we")
 
 
-        lb_cid.grid(row=0, column=2, sticky="we")
-        en_cid.grid(row=0, column=3, sticky="we")
-        lb_rcid.grid(row=1, column=2, sticky="we")
-        en_rcid.grid(row=1, column=3, sticky="we")
-        lb_token.grid(row=2, column=2, sticky="we")
-        en_token.grid(row=2, column=3, sticky="we")
-        lb_tr.grid(row=3, column=2, sticky="we")
-        en_tr.grid(row=3, column=3, sticky="we")
-        lb_reserve.grid(row=4, column=2, sticky="we")
-        en_reserve.grid(row=4, column=3, sticky="we")
-        lb_status.grid(row=5, column=2, sticky="we")
-        en_status.grid(row=5, column=3, sticky="we")
+
 
         lb_case.grid(row=6, column=2)
-        txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
+        frame_txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
+        #frame_txt_tc_rendered.grid(row=8, column = 3, rowspan=3, sticky="we")
+
+        txt_tc.grid(row=0, column=0, rowspan=3, sticky="we")
+        txt_tc_rendered.grid(row=0, column=0, rowspan=3, sticky="we")
         lb_txt_tc.grid(row=8, column=2, sticky="we")
 
         lst_tc.grid(row=6, column=3, sticky="we")
 
-        lb_tc.grid(row=7, column=2, sticky="we")
-        en_tc.grid(row=7, column=3, sticky="we")
+
+
 
 
         lb_txt = Label(frameBot, text="실행로그", width=10)
@@ -416,7 +454,7 @@ class MyApp(tk.Tk):
         interval2 = ((datetime.now() + timedelta(
             seconds=int(en_timestamp3.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if en_timestamp3.get() else 0
 
-        self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),
+        self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),'$idTag': en_idtag1.get(),
                       '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': interval1,
                       '$ctime+$interval2': interval2, '$crgr_mdl': en_mdl.get(), '$crgr_sno': en_sno.get(),
                       '$crgr_rsno': en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': en_tr.get(),
@@ -445,8 +483,8 @@ class MyApp(tk.Tk):
                         lst_tc.insert(END, tc)
 
         def onSelectTcItem(event):
+            import copy
             w = event.widget
-
             items= [ w.get(s) for s in w.curselection() ]
             if not items :
                 return
@@ -460,6 +498,13 @@ class MyApp(tk.Tk):
 
             txt_tc.delete(1.0, END)
             txt_tc.insert(END, json.dumps(text_item, indent=2))
+
+            doc = copy.deepcopy(text_item)
+            for k in self.ConfV.keys():
+                tc_render(doc, k)
+
+            txt_tc_rendered.delete(1.0, END)
+            txt_tc_rendered.insert(END, json.dumps(doc, indent=2))
 
             schemas = {}
             for msgid in text_item.keys():
@@ -515,6 +560,15 @@ class MyApp(tk.Tk):
                 lst_cases.insert(END, item )
 
             self.init_result()
+
+        def copy(event: tk.Event = None) -> str:
+            try:
+                text = event.widget.selection_get()
+                pyperclip.copy(text)
+            except tk.TclError:
+                pass
+            return "break"
+
         # def onEnter(event):
         #     index = event.widget.index("%s, %s" %(event.x, event.y))
 
@@ -532,6 +586,8 @@ class MyApp(tk.Tk):
         bt_reload.bind("<Button-1>", reload_tc)
         #bt_savetc.bind("<Button-1>", saveocpp)
         txt_tc.bind('<FocusOut>', checkocpp)
+        txt_tc.bind('<Control-c>', copy)
+        txt_tc_rendered.bind('<Control-c>', copy)
         # lst_tc.bind('<Enter>', onEnter)
         # en_idtag1.bind('<KeyRelease>', onChangeConfig)
         # en_idtag2.bind('<KeyRelease>', onChangeConfig)

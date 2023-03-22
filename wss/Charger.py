@@ -304,7 +304,7 @@ class Charger() :
         scases = []
         step_count = 0
         self.status = 0
-
+        self.txt_recv.see(END)
         for idx, case in enumerate(cases.keys()):
 
             await self.conn(case)
