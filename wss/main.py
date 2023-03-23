@@ -117,7 +117,7 @@ class MyApp(tk.Tk):
         frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=5, pady=5)
         frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
 
-        lst_cases = Listbox(frameTop, height=7, selectmode="extended", activestyle="none")
+        lst_cases = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", exportselection=False)
 
         def tcload_callback():
             try :
