@@ -6,8 +6,7 @@
     {
       "chargePointModel": "$crgr_mdl",
       "chargePointVendor": "EVAR",
-      "chargePointSerialNumber": "$crgr_sno",
-      "firmwareVersion": "0.1.0"
+      "chargePointSerialNumber": "$crgr_sno"
     }
   ],
   "StatusNotification": [

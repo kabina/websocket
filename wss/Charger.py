@@ -68,6 +68,8 @@ class Config():
         self.test_mode = kwargs["test_mode"]
         self.ocppdocs = kwargs["ocppdocs"]
         self.txt_tc = kwargs["txt_tc"]
+        self.progressbar = kwargs["progressbar"]
+        self.curProgress = kwargs["curProgress"]
 
 class Charger() :
     _transactionId: int
@@ -94,6 +96,8 @@ class Charger() :
         self.test_mode = config.test_mode
         self.ocppdocs = config.ocppdocs
         self.txt_tc = config.txt_tc
+        self.progressbar = config.progressbar
+        self.curProgress = config.curProgress
 
         self.arr_messageid = {
             "$uuid":str(uuid.uuid4()),
@@ -211,14 +215,6 @@ class Charger() :
         for k in self.confV.keys():
             self.tc_render(doc, k)
 
-        # confVkey = self.confV.keys()
-        # print(doc, confVkey)
-        # for k in doc[3].keys():
-        #     if isinstance(doc[3][k], (dict,list)) :
-        #         continue
-        #     elif doc[3][k] in confVkey:
-        #         doc[3][k] = self.confV[doc[3][k]]
-
     def convertSendDoc(self, ocpp) -> dict:
 
         doc = self.ocppdocs[ocpp[0]]
@@ -305,6 +301,7 @@ class Charger() :
         step_count = 0
         self.status = 0
         self.txt_recv.see(END)
+        case_cnt = sum([len(cases[c]) for c in cases.keys()])
         for idx, case in enumerate(cases.keys()):
 
             await self.conn(case)
@@ -315,14 +312,16 @@ class Charger() :
             self.log("+===========================================================", attr='green')
             change_text(self.en_tc, case)
             self.lst_cases.see(idx)
+
             ilen = len(cases[case])
             for idx2, c in enumerate(cases[case]):
 
                 self.lst_tc.selection_clear(0, 'end')
                 self.lst_tc.select_set(step_count)
                 self.lst_tc.itemconfig(step_count, {'fg': 'green'})
-
                 step_count += 1
+                self.curProgress.set(step_count / case_cnt*100)
+                self.progressbar.update()
                 self.lst_tc.see(step_count)
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')

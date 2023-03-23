@@ -42,6 +42,7 @@ class MyApp(tk.Tk):
         self.charger = None
         self.status = None
 
+
     def init_result(self):
         self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
 
@@ -67,7 +68,9 @@ class MyApp(tk.Tk):
                             lst_tc = lst_tc,
                             test_mode = vmode.get(),
                             ocppdocs = self.ocppdocs,
-                            txt_tc = txt_tc
+                            txt_tc = txt_tc,
+                            progressbar = progressbar,
+                            curProgress=curProgress
                             )
             interval1 = ((datetime.now() + timedelta(
                 seconds=int(en_timestamp2.get()))).isoformat(sep='T',
@@ -104,7 +107,7 @@ class MyApp(tk.Tk):
         from tkinter import Label, Entry, Button, scrolledtext, Listbox, messagebox
 
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
-        self.window.geometry("1160x960+500+100")
+        self.window.geometry("1160x990+500+100")
         self.window.resizable(True, True)
         frameHat = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
         frameHat.pack(side="top", fill="both", expand=True, padx=5, pady=5)
@@ -237,7 +240,7 @@ class MyApp(tk.Tk):
             en_status.delete(0, END)
             en_status.insert(0, "Test Finished")
             bt_conn['state'] = tk.DISABLED
-
+            tkinter.messagebox.showinfo(title="완료", message="TC 수행을 완료했습니다.")
         async def closeEvent():
             self.window.destroy()
 
@@ -249,6 +252,12 @@ class MyApp(tk.Tk):
         lb_url = Label(frameTop, text="WSS URL", width=10)
         lb_rest_url = Label(frameTop, text="REST URL", width=10)
         lb_cases = Label(frameTop, text="Test Case", width=10)
+        curProgress = tkinter.DoubleVar()
+        style = tkinter.ttk.Style()
+        style.theme_use('clam')
+        style.configure("1.Horizontal.TProgressbar", troughcolor='gray', background='green')
+        progressbar = tkinter.ttk.Progressbar(frameTop, style="1.Horizontal.TProgressbar", maximum=100, variable = curProgress)
+        lb_progress = Label(frameTop, text="진행률")
 
 
         en_url = Entry(frameTop, width=60)
@@ -262,12 +271,21 @@ class MyApp(tk.Tk):
 
        # txt_tc.config(state=tk.DISABLED)
 
+        lb_protocol = Label(frameHat, text="프로토콜")
         lb_sno = Label(frameHat, text="충전기ID(일반)")
         lb_rsno = Label(frameHat, text="충전기ID(예약)")
         lb_mdl = Label(frameHat, text="모델ID")
 
         lb_cid = Label(frameHat, text="충전기CID(일반)", width=13)
         lb_rcid = Label(frameHat, text="충전기CID(예약)", width=13)
+        options= [
+            "ocpp1.6(Websocket)",
+            "ocpp2.0(Websocket)"
+        ]
+        clicked = StringVar(frameHat)
+        clicked.set("ocpp1.6(Websocket)")
+        en_protocol = OptionMenu(frameHat, clicked, *options)
+
         en_sno = Entry(frameHat)
         en_sno.insert(0, "EVSCA070007")
         en_rsno = Entry(frameHat)
@@ -283,20 +301,22 @@ class MyApp(tk.Tk):
         en_tr = Entry(frameHat)
         en_token = Entry(frameHat)
         en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
-        lb_reserve = Label(frameHat, text="reserveId", width=10)
+        lb_reserve = Label(frameHat, text="reserveId", width=5)
         en_reserve = Entry(frameHat)
-        lb_status = Label(frameHat, text="Status", width=10)
+        lb_status = Label(frameHat, text="Status", width=5)
         en_status = Entry(frameHat)
         en_status.insert(0, 'Idle')
 
-        lb_sno.grid(row=0, column=0, sticky="we")
-        en_sno.grid(row=0, column=1, sticky="we")
-        lb_rsno.grid(row=0, column=2, sticky="we")
-        en_rsno.grid(row=0, column=3, sticky="we")
-        lb_cid.grid(row=0, column=4, sticky="we")
-        en_cid.grid(row=0, column=5, sticky="we")
-        lb_rcid.grid(row=0, column=6, sticky="we")
-        en_rcid.grid(row=0, column=7, sticky="we")
+        lb_protocol.grid(row=0, column=0, sticky="we")
+        en_protocol.grid(row=0, column=1, sticky="we")
+        lb_sno.grid(row=0, column=2, sticky="we")
+        en_sno.grid(row=0, column=3, sticky="we")
+        lb_rsno.grid(row=0, column=4, sticky="we")
+        en_rsno.grid(row=0, column=5, sticky="we")
+        lb_cid.grid(row=0, column=6, sticky="we")
+        en_cid.grid(row=0, column=7, sticky="we")
+        lb_rcid.grid(row=0, column=8, sticky="we")
+        en_rcid.grid(row=0, column=9)
 
         lb_mdl.grid(row=1, column=0, sticky="we")
         en_mdl.grid(row=1, column=1, sticky="we")
@@ -306,8 +326,8 @@ class MyApp(tk.Tk):
         en_tr.grid(row=1, column=5, sticky="we")
         lb_reserve.grid(row=1, column=6, sticky="we")
         en_reserve.grid(row=1, column=7, sticky="we")
-        lb_status.grid(row=2, column=0, sticky="we")
-        en_status.grid(row=2, column=1, sticky="we")
+        lb_status.grid(row=1, column=8, sticky="we")
+        en_status.grid(row=1, column=9, sticky="we")
 
 
         lb_url_comp = Label(frameTop, text=en_url.get()+"/"+en_mdl.get()+"/"+en_sno.get())
@@ -330,6 +350,8 @@ class MyApp(tk.Tk):
 
 
         en_url.grid(row=3, column=1, sticky="we")
+        lb_progress.grid(row=3, column=2, sticky="we")
+        progressbar.grid(row=3, column=3, sticky="we")
         lb_url_comp.grid(row=4, column=1, sticky="w")
         en_rest_url.grid(row=5, column=1, sticky="we")
         lb_tc = Label(frameTop, text="Current TC", width=13)
@@ -576,6 +598,14 @@ class MyApp(tk.Tk):
         def reload_tc(event) :
             load_default_tc()
 
+        def lst_cases_double_click(event):
+            w = event.widget
+            idx = w.curselection()[0]
+            #print(lst_cases.get(idx))
+            line = txt_recv.search(lst_cases.get(idx).split()[0], "0.0", stopindex=END)
+            #print(line)
+            txt_recv.see(line)
+
         load_default_tc()
 
         en_sno.bind('<KeyRelease>', wssRenew)
@@ -588,7 +618,7 @@ class MyApp(tk.Tk):
         txt_tc.bind('<FocusOut>', checkocpp)
         txt_tc.bind('<Control-c>', copy)
         txt_tc_rendered.bind('<Control-c>', copy)
-        # lst_tc.bind('<Enter>', onEnter)
+        lst_cases.bind('<Double-Button>', lst_cases_double_click)
         # en_idtag1.bind('<KeyRelease>', onChangeConfig)
         # en_idtag2.bind('<KeyRelease>', onChangeConfig)
         # en_idtag3.bind('<KeyRelease>', onChangeConfig)
