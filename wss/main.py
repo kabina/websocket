@@ -70,7 +70,9 @@ class MyApp(tk.Tk):
                             ocppdocs = self.ocppdocs,
                             txt_tc = txt_tc,
                             progressbar = progressbar,
-                            curProgress=curProgress
+                            curProgress=curProgress,
+                            bt_direct_send=bt_direct_send,
+                            lb_mode_alert=lb_mode_alert
                             )
             interval1 = ((datetime.now() + timedelta(
                 seconds=int(en_timestamp2.get()))).isoformat(sep='T',
@@ -88,6 +90,25 @@ class MyApp(tk.Tk):
             self.status = 1
 
         ConfRV = {}
+
+        def sendToClient(doc):
+            rest_url = self.config.rest_url
+            import requests, uuid
+            if "transactionId" in doc[3]:
+                doc[3]["transactionId"] = int(en_tr.get())
+            doc[1] = f'{str(uuid.uuid4())}'
+            reqdoc = {
+                "crgrMid": self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
+                "data": doc
+            }
+            header = {
+                "Accept": "*/*",
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+            }
+            txt_recv.insert(END, f" << Direct Msg {reqdoc} ...")
+            response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
+
         def tc_render(adict, k):
             import datetime
             if isinstance(adict, dict):
@@ -241,11 +262,51 @@ class MyApp(tk.Tk):
             en_status.insert(0, "Test Finished")
             bt_conn['state'] = tk.DISABLED
             tkinter.messagebox.showinfo(title="완료", message="TC 수행을 완료했습니다.")
+            txt_tc.delete("0.0", END)
+            curProgress.set(0)
+            progressbar.update()
+
+        def directClientSend():
+            # if self.status == 0:
+            #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
+            #     #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
+            #     return
+            #
+            # self.status=0
+            import copy
+            bt_conn['state'] = tk.NORMAL
+            config_update()
+            # TC_update()
+            en_log.delete(0, END)
+            en_status.delete(0, END)
+            en_status.insert(0, "Running")
+            item = lst_tc.curselection()[0]
+            """ 템플릿 전문 [2, 3213123, ... """
+            ocpp = copy.deepcopy(self.org_ocppdocs[lst_tc.get(item)[1]])
+            """ {} 내부 """
+
+            lst_body = json.loads((lst_tc.get(item)[2]).replace("\'", "\""))
+
+            """TC내 지정 전문 변환"""
+            for c in lst_body.keys():
+                ocpp[3][c] = lst_body[c]
+
+            """변수값 치환 변환"""
+            for k in self.ConfV.keys():
+                tc_render(ocpp[3], k)
+
+            sendToClient(ocpp)
+            en_status.delete(0, END)
+            en_status.insert(0, "전문 Client 전송 완료")
+            bt_conn['state'] = tk.DISABLED
+
         async def closeEvent():
             self.window.destroy()
 
         async def stopCharger():
+            lb_mode_alert['text'] =""
             await self.charger.close()
+
 
         lb_log = Label(frameTop, text="로그", width=10)
 
@@ -445,22 +506,27 @@ class MyApp(tk.Tk):
         bt_rframe.grid(row=13, column=2, columnspan=4, sticky="e", padx=10, pady=10)
         vmode = IntVar()
         lb_mode = Label(rdo_frame, text="원격제어방법")
+        lb_mode_alert = Label(rdo_frame, text="", fg='red')
         lb_mode.grid(row=0, column=0)
-        test_mode1 = Radiobutton(rdo_frame, text="Rest직접호출", variable=vmode, value=1)
+        test_mode1 = Radiobutton(rdo_frame, text="Local호출", variable=vmode, value=1)
         test_mode2 = Radiobutton(rdo_frame, text="CSMS", variable=vmode, value=2)
+        lb_mode_alert.grid(row=0, column=4, sticky="e")
         test_mode1.grid(row=0, column=1)
         test_mode2.grid(row=0, column=2)
+
         vmode.set(1)
         bt_conn = Button(bt_frame, text="시험 중지", command=async_handler(stopCharger), state=DISABLED, width=15)
         bt_start = Button(bt_frame, text="TC 실행", command=async_handler(startEvent), width=15)
         bt_reload = Button(bt_frame, text="TC Reload", width=15)
         bt_close = Button(bt_frame, text="시뮬레이터 종료", command=async_handler(closeEvent), width=15)
         bt_savetc = Button(bt_rframe, text="변경TC 저장", width=15, command=saveocpp)
+        bt_direct_send = Button(bt_rframe, text="전문직접전송(To 충전기)", width=20, bg="lightgreen", command=directClientSend, state="disabled")
         bt_conn.grid(row=1, column=0, ipady=3, pady=3, sticky="w")
         bt_start.grid(row=1, column=1, ipady=3, pady=3, sticky="w")
         bt_reload.grid(row=1, column=2, ipady=3, pady=3, sticky="w")
         bt_close.grid(row=1, column=3, ipady=3, pady=3, sticky="E")
-        bt_savetc.grid(row=1, column=1, ipady=3, pady=3, sticky="WE")
+        bt_direct_send.grid(row=1, column=1, ipady=3, pady=3, sticky="WE")
+        bt_savetc.grid(row=1, column=2, ipady=3, pady=3, sticky="WE")
         lb_save_notice = Label(bt_rframe)
         lb_save_notice.grid(row=1, column=0, sticky="e")
 
@@ -515,8 +581,10 @@ class MyApp(tk.Tk):
             for item in items :
                 if item[0]  in ('Wait', 'Reply') :
                     text_item[item[1]]=self.org_ocppdocs[item[1]]
+                    bt_direct_send['state'] = tk.NORMAL
                 else :
                     text_item[item[0]]=self.org_ocppdocs[item[0]]
+                    bt_direct_send['state'] = tk.DISABLED
 
             txt_tc.delete(1.0, END)
             txt_tc.insert(END, json.dumps(text_item, indent=2))
@@ -603,8 +671,8 @@ class MyApp(tk.Tk):
             idx = w.curselection()[0]
             #print(lst_cases.get(idx))
             line = txt_recv.search(lst_cases.get(idx).split()[0], "0.0", stopindex=END)
-            #print(line)
-            txt_recv.see(line)
+            if line :
+                txt_recv.see(line)
 
         load_default_tc()
 

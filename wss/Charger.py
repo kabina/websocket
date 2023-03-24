@@ -70,6 +70,8 @@ class Config():
         self.txt_tc = kwargs["txt_tc"]
         self.progressbar = kwargs["progressbar"]
         self.curProgress = kwargs["curProgress"]
+        self.bt_direct_send = kwargs['bt_direct_send']
+        self.lb_mode_alert = kwargs['lb_mode_alert']
 
 class Charger() :
     _transactionId: int
@@ -98,6 +100,8 @@ class Charger() :
         self.txt_tc = config.txt_tc
         self.progressbar = config.progressbar
         self.curProgress = config.curProgress
+        self.bt_direct_send = config.bt_direct_send
+        self.lb_mode_alert = config.lb_mode_alert
 
         self.arr_messageid = {
             "$uuid":str(uuid.uuid4()),
@@ -145,6 +149,11 @@ class Charger() :
         self.lst_tc = config.lst_tc
         self.test_mode = config.test_mode
         self.ocppdocs = config.ocppdocs
+        self.txt_tc = config.txt_tc
+        self.progressbar = config.progressbar
+        self.curProgress = config.curProgress
+        self.bt_direct_send = config.bt_direct_send
+        self.lb_mode_alert = config.lb_mode_alert
 
     def change_list(self, case, text, attr=None, log=None):
         # idx = obj.get(0, "end").index(case.split()[0])
@@ -181,7 +190,8 @@ class Charger() :
         await self.ws.close()
 
     async def waitMessages(self):
-
+        self.bt_direct_send['state'] = tk.NORMAL
+        self.lb_mode_alert['text'] = "충전기가 전문 수신 대기중입니다. '전문직접전송' 버튼 또는 앱/관리자페이지에서 전문을 전송 하십시오"
         try :
             while True:
                 message = await asyncio.wait_for(self.ws.recv(), 600)
@@ -267,7 +277,7 @@ class Charger() :
             return False, e.message
         return True,None
 
-    async def callbackRequest(self, msgType, doc):
+    async def callbackRequest(self, doc):
         rest_url = self.config.rest_url
         import requests, uuid
         if "transactionId" in doc[3] :
@@ -278,6 +288,7 @@ class Charger() :
             "crgrMid":self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
             "data": doc
         }
+
         header = {
             "Accept":"*/*",
             "Content-Type":"application/json",
@@ -299,11 +310,12 @@ class Charger() :
         import time
         scases = []
         step_count = 0
+
         self.status = 0
         self.txt_recv.see(END)
         case_cnt = sum([len(cases[c]) for c in cases.keys()])
         for idx, case in enumerate(cases.keys()):
-
+            inner_step_count = 0
             await self.conn(case)
             if self.status == -1 :
                 break
@@ -315,22 +327,30 @@ class Charger() :
 
             ilen = len(cases[case])
             for idx2, c in enumerate(cases[case]):
+                """일반TC에서는 전문 Client직접접속 버튼 해제"""
+                self.bt_direct_send['state'] = tk.DISABLED
+                self.lb_mode_alert['text'] =""
 
+                inner_step_count += 1
                 self.lst_tc.selection_clear(0, 'end')
                 self.lst_tc.select_set(step_count)
                 self.lst_tc.itemconfig(step_count, {'fg': 'green'})
                 step_count += 1
+                """ Progress bar Update"""
                 self.curProgress.set(step_count / case_cnt*100)
                 self.progressbar.update()
                 self.lst_tc.see(step_count)
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
+
                     if self.test_mode == 1:
                         doc = self.ocppdocs[c[1]]
                         if len(c) > 2:
                             for d in c[2].keys():
                                 doc[3][d] = c[2][d]
-                        await self.callbackRequest(c[1], doc)
+
+                        await self.callbackRequest( doc)
+
                 elif c[0] == "Reply":
                     recv = await self.waitMessages()
                     if recv == None :
@@ -386,6 +406,11 @@ class Charger() :
 
                 if idx2 == (ilen-1) :
                     self.change_list(case, f"{case} (Pass)", attr={'fg':'blue'}, log="Passed")
+            step_count += (ilen-inner_step_count)
+            """ Progress bar Update(TC별 오류로 미처리된 STEP처리"""
+            self.curProgress.set(step_count / case_cnt * 100)
+            self.progressbar.update()
+            self.lst_tc.see(step_count)
 
             await self.close()
 
