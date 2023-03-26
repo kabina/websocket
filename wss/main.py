@@ -1,25 +1,377 @@
 import asyncio
-import logging
 import tkinter
-
-import json
-import copy
-import pyperclip
+import json, copy, pyperclip, uuid, logging
 import tkinter as tk
 from Charger import Charger, TextHandler, Config
-
 from async_tkinter_loop import async_handler, async_mainloop
-import uuid
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import tkinter.filedialog as filedialog
-from datetime import datetime
-from datetime import timedelta
-import sys
+from datetime import datetime, timedelta
 
-class MyApp(tk.Tk):
+class ChargerSim(tk.Tk):
 
     def __init__(self):
+        self.TC = None
+        self.TC_original = None
+        self.TC_selected = {}
+        self.TC_result = []
+        self.org_ocppdocs = {}
+        self.ocppdocs = {}
+
+        self.ConfV = {}
+        self.config = None
+        self.charger = None
+        self.status = None
+
+        self.initUI()
+        self.initFunc()
+        self.startApp()
+
+
+    def initFunc(self):
+        pass
+
+    def config_update(self):
+        self.config = Config(wss_url=self.en_url.get(),
+                        rest_url=self.en_rest_url.get(),
+                        auth_token=self.en_token.get(),
+                        en_status=self.en_status,
+                        en_tr=self.en_tr,
+                        en_tc=self.en_tc,
+                        lst_cases=self.lst_cases,
+                        txt_recv=self.txt_recv,
+                        cid=self.en_cid.get(),
+                        rcid = self.en_rcid.get(),
+                        sno = self.en_sno.get(),
+                        rsno = self.en_rsno.get(),
+                        mdl = self.en_mdl.get(),
+                        result=self.TC_result,
+                        confV=self.ConfV,
+                        en_reserve = self.en_reserve.get(),
+                        lst_tc = self.lst_tc,
+                        test_mode = self.vmode.get(),
+                        ocppdocs = self.ocppdocs,
+                        txt_tc = self.txt_tc,
+                        progressbar = self.progressbar,
+                        curProgress=self.curProgress,
+                        bt_direct_send=self.bt_direct_send,
+                        lb_mode_alert=self.lb_mode_alert
+                        )
+    def tcload_callback(self):
+        try :
+            self.en_log.delete(0, END)
+            self.TC = json.loads(open(filedialog.askopenfilename(initialdir=".",
+                                     title="Select TC cases (json)",
+                                     filetypes=(("Json files", "*.json"),
+                                                ("txt files", "*.txt"))),encoding="UTF-8").read())
+            self.init_result()
+        except Exception as err:
+            self.en_log.insert(0, "Please Check your TC json file.")
+            return
+
+        self.lst_cases.delete(0,END)
+        for item in self.TC.keys():
+            self.lst_cases.insert(END, item )
+
+    def checkocpp(self, event):
+        import jsonschema
+        key = None
+        try:
+            doc = event.widget.get("1.0", END)
+            doc = json.loads(doc)
+            key = list(doc.keys())[0]
+            with open("./schemas/" + key + ".json") as fd:
+                schema = fd.read().encode('utf-8')
+
+            if str(key).endswith("Response") :
+                target =doc[key][2]
+            else:
+                target =doc[key][3]
+
+            jsonschema.validate(instance=target, schema=json.loads(schema))
+            self.org_ocppdocs[key] = doc[key]
+            #bt_savetc.config(state='normal')
+            self.bt_savetc['state'] = tk.NORMAL
+            self.lb_save_notice['text'] = "전문 템플릿이 변경되었습니다. \n유지 하시려면 변경TC를 저장하십시오"
+        except jsonschema.exceptions.ValidationError as e:
+            messagebox.showerror(title="알림", message=f"변경된 내용이 {key} 전문 형식에 맞지 않습니다. {e.message}")
+        except json.decoder.JSONDecodeError as e:
+            messagebox.showerror(title="알림", message="변경 내용이 Json Format에 맞지 않습니다.")
+            return False
+
+    def saveocpp(self):
+        try :
+            with open("ocpp.json","w") as fd:
+                fd.write(json.dumps(self.org_ocppdocs, indent=2))
+            tkinter.messagebox.showinfo(title="성공", message="ocpp template이 저장 되었습니다.")
+            self.bt_savetc['state'] = tk.DISABLED
+            self.lb_save_notice['text'] = ""
+            with open("./ocpp.json", encoding='utf-8') as fd:
+                self.ocppdocs = json.loads(fd.read())
+        except Exception as e:
+            tkinter.messagebox.showerror(title="오류", message="ocpp template 저장 중 오류 발생")
+
+    async def startEvent(self):
+        # if self.status == 0:
+        #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
+        #     #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
+        #     return
+        #
+        # self.status=0
+        self.bt_conn['state'] = tk.NORMAL
+
+        self.config_update()
+        # TC_update()
+        self.en_log.delete(0, END)
+        self.en_status.delete(0, END)
+        self.en_status.insert(0, "Running")
+        if not self.TC_selected  :
+            for tc in self.TC_original.keys():
+                for t in self.TC_original[tc]:
+                    self.lst_tc.insert(END, t)
+
+        self.charger = Charger(self.config)
+        await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
+        self.en_status.delete(0, END)
+        self.en_status.insert(0, "Test Finished")
+        self.bt_conn['state'] = tk.DISABLED
+        tkinter.messagebox.showinfo(title="완료", message="TC 수행을 완료했습니다.")
+        self.txt_tc.delete("0.0", END)
+        self.curProgress.set(0)
+        self.progressbar.update()
+
+    def directClientSend(self):
+        # if self.status == 0:
+        #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
+        #     #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
+        #     return
+        #
+        # self.status=0
+        import copy
+        self.bt_conn['state'] = tk.NORMAL
+        self.config_update()
+        # TC_update()
+        self.en_log.delete(0, END)
+        self.en_status.delete(0, END)
+        self.en_status.insert(0, "Running")
+        item = self.lst_tc.curselection()[0]
+        """ 템플릿 전문 [2, 3213123, ... """
+        ocpp = copy.deepcopy(self.org_ocppdocs[self.lst_tc.get(item)[1]])
+        """ {} 내부 """
+
+        lst_body = json.loads((self.lst_tc.get(item)[2]).replace("\'", "\""))
+
+        """TC내 지정 전문 변환"""
+        for c in lst_body.keys():
+            ocpp[3][c] = lst_body[c]
+
+        """변수값 치환 변환"""
+        for k in self.ConfV.keys():
+            self.tc_render(ocpp[3], k)
+
+        self.sendToClient(ocpp)
+        self.en_status.delete(0, END)
+        self.en_status.insert(0, "전문 Client 전송 완료")
+        self.bt_conn['state'] = tk.DISABLED
+
+    async def closeEvent(self):
+        self.window.destroy()
+
+    async def stopCharger(self):
+        self.lb_mode_alert['text'] =""
+        await self.charger.close()
+    def show_txt_tc(self):
+        self.frame_txt_tc_rendered.grid_remove()
+        self.frame_txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
+
+    def show_txt_tc_rendered(self):
+        self.frame_txt_tc.grid_remove()
+        self.frame_txt_tc_rendered.grid(row=8, column=3, rowspan=3, sticky="we")
+
+    def wssRenew(self, event):
+        self.lb_url_comp.config(text=self.en_url.get()+'/'+self.en_mdl.get()+'/'+self.en_sno.get())
+
+
+    def onSelect(self, event):
+        w = event.widget
+        self.TC_selected ={}
+        for s in w.curselection():
+            self.TC_selected[w.get(s).split()[0]] = self.TC[w.get(s).split()[0]]
+            self.en_tc.config(state='normal')
+            self.en_tc.delete(0,END)
+            self.en_tc.insert(0,w.get(s).split())
+            self.en_tc.config(state='disabled')
+        if w.curselection() :
+            index = int(w.curselection()[0])
+            self.en_log.delete(0,END)
+            self.en_log.insert(END, self.TC_result[index])
+            self.lst_tc.delete(0,END)
+            for c in self.TC_selected :
+                for tc in self.TC_original[c]:
+                    self.lst_tc.insert(END, tc)
+
+    def onSelectTcItem(self, event):
+        import copy
+        w = event.widget
+        items= [ w.get(s) for s in w.curselection() ]
+        if not items :
+            return
+
+        text_item = {}
+        for item in items :
+            if item[0]  in ('Wait', 'Reply') :
+                text_item[item[1]]=self.org_ocppdocs[item[1]]
+                self.bt_direct_send['state'] = tk.NORMAL
+            else :
+                text_item[item[0]]=self.org_ocppdocs[item[0]]
+                self.bt_direct_send['state'] = tk.DISABLED
+
+        self.txt_tc.delete(1.0, END)
+        self.txt_tc.insert(END, json.dumps(text_item, indent=2))
+
+        doc = copy.deepcopy(text_item)
+        for k in self.ConfV.keys():
+            self.tc_render(doc, k)
+
+        self.txt_tc_rendered.delete(1.0, END)
+        self.txt_tc_rendered.insert(END, json.dumps(doc, indent=2))
+
+        schemas = {}
+        for msgid in text_item.keys():
+            with open(f"./schemas/{msgid}.json", encoding='utf-8') as fd:
+                schemas['Request'] = json.loads(fd.read())
+            with open(f"./schemas/{msgid}Response.json", encoding='utf-8') as fd:
+                schemas['Response'] = json.loads(fd.read())
+        # schemas = schemas
+        self.txt_schema.delete(1.0, END)
+        self.txt_schema.insert(END, json.dumps(schemas, indent=2))
+
+    def TC_update(self):
+        from datetime import timedelta
+        ctime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
+        try :
+            for v in self.ConfV.keys():
+                #print(self.ConfV[v].get())
+                if v == "$ctime" :
+
+                    self.ConfRV[v] = ctime
+                elif v == "$ctime+$interval1" and len(self.ConfV[v].get()) > 0:
+                    self.ConfRV[v] = (datetime.now() +
+                                      timedelta(seconds=int(self.ConfV[v].get()))).isoformat(sep='T',
+                                                                                        timespec='seconds')+'Z'
+                elif v == "$ctime+$interval2" and len(self.ConfV[v].get()) > 0:
+                    self.ConfRV[v] = (datetime.now() +
+                                     timedelta(seconds=int(self.ConfV[v].get()))).isoformat(sep='T',
+                                                                                       timespec='seconds')+'Z"'
+                else:
+                    self.ConfRV[v] = self.ConfV[v].get()
+                self.tc_render(self.TC, v)
+        except ValueError as err:
+            vtmp = ''.join(c for c in self.ConfV[v].get() if c.isdigit())
+            self.ConfV[v].delete(0,END)
+            self.ConfV[v].insert(0,vtmp)
+    def load_default_tc(self):
+        import copy
+        try :
+            self.en_log.delete(0, END)
+            with open("./props.json", encoding='utf-8') as fd:
+                self.TC = json.loads(fd.read())
+            self.TC_original = copy.deepcopy(self.TC)
+            self.init_result()
+            with open("./ocpp.json", encoding='utf-8') as fd:
+                self.ocppdocs = json.loads(fd.read())
+                self.org_ocppdocs = copy.deepcopy(self.ocppdocs)
+
+        except Exception as err:
+            self.en_log.insert(0, "Please Check your TC json file.")
+            return
+        self.lst_cases.delete(0,END)
+        for item in self.TC.keys():
+            self.lst_cases.insert(END, item )
+
+        self.init_result()
+
+    def ctrlc(event: tk.Event = None) -> str:
+        try:
+            text = event.widget.selection_get()
+            pyperclip.copy(text)
+        except tk.TclError:
+            pass
+        return "break"
+
+    # def onEnter(event):
+    #     index = event.widget.index("%s, %s" %(event.x, event.y))
+
+    """props.json 파일(기본TC파일) 로드"""
+    def reload_tc(self, event) :
+        self.load_default_tc()
+
+    def lst_cases_double_click(self,event):
+        w = event.widget
+        idx = w.curselection()[0]
+        #print(lst_cases.get(idx))
+        line = self.txt_recv.search(self.lst_cases.get(idx).split()[0], "0.0", stopindex=END)
+        if line :
+            self.txt_recv.see(line)
+    async def on_closing(self):
+        import sys
+        if self.bt_savetc['state'] == tk.NORMAL :
+            if messagebox.askokcancel("종료", "편집 중인 전문이 있습니다. 종료 하시겠습니까?"):
+                await self.closeEvent()
+            else:
+                return
+        await self.closeEvent()
+
+
+    def set_time_label(self):
+        from datetime import datetime
+        currentTime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
+        self.en_timestamp1.delete(0, END)
+        self.en_timestamp1.insert(0, currentTime)
+        self.tab2.after(1, self.set_time_label)
+
+    def sendToClient(self, doc):
+        rest_url = self.config.rest_url
+        import requests, uuid
+        if "transactionId" in doc[3]:
+            doc[3]["transactionId"] = int(self.en_tr.get())
+        doc[1] = f'{str(uuid.uuid4())}'
+        reqdoc = {
+            "crgrMid": self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
+            "data": doc
+        }
+        header = {
+            "Accept": "*/*",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+        }
+        self.txt_recv.insert(END, f" << Direct Msg {reqdoc} ...")
+        response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
+
+    def tc_render(self, adict, k):
+        import datetime
+        if isinstance(adict, dict):
+            for key in adict.keys():
+                if adict[key] == k:
+                    try:
+                        adict[key] = self.ConfV[k]
+                    except ValueError:
+                        pass  # do nothing if the timestamp is already in the correct format
+                elif isinstance(adict[key], (dict, list)):
+                    self.tc_render(adict[key], k)
+        elif isinstance(adict, list):
+            for l in adict:
+                self.tc_render(l, k)
+
+    def init_result(self):
+        self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
+
+
+    def initUI(self):
+        import tkinter.ttk
+        from tkinter import Label, Entry, Button, scrolledtext, Listbox
+
         self.window = tkinter.Tk()
         self.tabs = ttk.Notebook(self.window)
         s = ttk.Style()
@@ -30,164 +382,163 @@ class MyApp(tk.Tk):
         self.tab2 = tkinter.ttk.Frame(self.tabs)
         self.tabs.add(self.tab1, text="TC Run")
         self.tabs.add(self.tab2, text="TC Configure")
-        self.TC = None
-        self.TC_original = None
-        self.TC_selected = {}
-        self.TC_result = []
-        self.org_ocppdocs = {}
-        self.ocppdocs = {}
-        self.initUI()
-        self.ConfV = {}
-        self.config = None
-        self.charger = None
-        self.status = None
 
-
-    def init_result(self):
-        self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
-
-
-    def initUI(self):
-        def config_update():
-            self.config = Config(wss_url=en_url.get(),
-                            rest_url=en_rest_url.get(),
-                            auth_token=en_token.get(),
-                            en_status=en_status,
-                            en_tr=en_tr,
-                            en_tc=en_tc,
-                            lst_cases=lst_cases,
-                            txt_recv=txt_recv,
-                            cid=en_cid.get(),
-                            rcid = en_rcid.get(),
-                            sno = en_sno.get(),
-                            rsno = en_rsno.get(),
-                            mdl = en_mdl.get(),
-                            result=self.TC_result,
-                            confV=self.ConfV,
-                            en_reserve = en_reserve.get(),
-                            lst_tc = lst_tc,
-                            test_mode = vmode.get(),
-                            ocppdocs = self.ocppdocs,
-                            txt_tc = txt_tc,
-                            progressbar = progressbar,
-                            curProgress=curProgress,
-                            bt_direct_send=bt_direct_send,
-                            lb_mode_alert=lb_mode_alert
-                            )
-            interval1 = ((datetime.now() + timedelta(
-                seconds=int(en_timestamp2.get()))).isoformat(sep='T',
-                                                             timespec='seconds') + 'Z') if en_timestamp2.get() else 0
-            interval2 = ((datetime.now() + timedelta(
-                seconds=int(en_timestamp3.get()))).isoformat(sep='T',
-                                                             timespec='seconds') + 'Z') if en_timestamp3.get() else 0
-
-            self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),'$idTag': en_idtag1.get(),
-                          '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': interval1,
-                          '$ctime+$interval2': interval2, '$crgr_mdl':en_mdl.get(), '$crgr_sno':en_sno.get(),
-                          '$crgr_rsno':en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':en_tr.get(), '$reservationId':en_reserve.get()}
-
-            #self.charger.update_config(self.config)
-            self.status = 1
-
-        ConfRV = {}
-
-        def sendToClient(doc):
-            rest_url = self.config.rest_url
-            import requests, uuid
-            if "transactionId" in doc[3]:
-                doc[3]["transactionId"] = int(en_tr.get())
-            doc[1] = f'{str(uuid.uuid4())}'
-            reqdoc = {
-                "crgrMid": self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
-                "data": doc
-            }
-            header = {
-                "Accept": "*/*",
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-            }
-            txt_recv.insert(END, f" << Direct Msg {reqdoc} ...")
-            response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
-
-        def tc_render(adict, k):
-            import datetime
-            if isinstance(adict, dict):
-                for key in adict.keys():
-                    if adict[key] == k:
-                        try:
-                            adict[key] = self.ConfV[k]
-                        except ValueError:
-                            pass  # do nothing if the timestamp is already in the correct format
-                    elif isinstance(adict[key], (dict, list)):
-                        tc_render(adict[key], k)
-            elif isinstance(adict, list):
-                for l in adict:
-                    tc_render(l, k)
-
-        import tkinter.ttk
-        from tkinter import Label, Entry, Button, scrolledtext, Listbox, messagebox
-
+        self.status = 1
+        self.ConfRV = {}
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
         self.window.geometry("1160x990+500+100")
         self.window.resizable(True, True)
-        frameHat = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
-        frameHat.pack(side="top", fill="both", expand=True, padx=5, pady=5)
-        frameTop = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
-        frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
-        frameBot = LabelFrame(self.tab1, text="Log Output", padx=5, pady=5)
-        frameBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
-        frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=5, pady=5)
-        frameConfTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
-        frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=5, pady=5)
-        frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
+        self.frameHat = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
+        self.frameTop = LabelFrame(self.tab1, text="Configuration", padx=5, pady=5)
+        self.frameBot = LabelFrame(self.tab1, text="Log Output", padx=5, pady=5)
+        self.frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=5, pady=5)
+        self.frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=5, pady=5)
+        self.lst_cases = Listbox(self.frameTop, height=7, selectmode="extended", activestyle="none", exportselection=False)
+        self.rdo_frame = Frame(self.frameTop)
+        self.bt_frame = Frame(self.frameTop)
+        self.bt_rframe = Frame(self.frameTop)
 
-        lst_cases = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", exportselection=False)
+        self.frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        self.frameHat.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        self.frameBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
+        self.frameConfTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        self.frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
+        self.menubar = Menu(self.window)
+        self.menu1 = Menu(self.menubar, tearoff=0)
+        self.menu2 = Menu(self.menubar, tearoff=0)
 
-        def tcload_callback():
-            try :
-                en_log.delete(0, END)
-                self.TC = json.loads(open(filedialog.askopenfilename(initialdir=".",
-                                         title="Select TC cases (json)",
-                                         filetypes=(("Json files", "*.json"),
-                                                    ("txt files", "*.txt"))),encoding="UTF-8").read())
-                self.init_result()
-            except Exception as err:
-                en_log.insert(0, "Please Check your TC json file.")
-                return
+        self.window.config(menu=self.menubar)
+        self.frame_txt_tc = Frame(self.frameTop, width=60, height=15)
+        self.frame_txt_tc_rendered = Frame(self.frameTop, width=60, height=15)
 
-            lst_cases.delete(0,END)
-            for item in self.TC.keys():
-                lst_cases.insert(END, item )
+        self.txt_tc = scrolledtext.ScrolledText(self.frame_txt_tc, width=70, height=15)
+        self.txt_tc_rendered = scrolledtext.ScrolledText(self.frame_txt_tc_rendered, width=70, height=15)
+        self.txt_schema = scrolledtext.ScrolledText(self.frameTop, width=50, height=15)
+        self.lb_schema = Label(self.frameTop, text="OCPP Schema", width=10)
+        self.lst_tc = Listbox(self.frameTop, height=7, selectmode="extended", activestyle="none", width=70)
+        self.lb_txt_tc = Label(self.frameTop, text="OCPP Template", width=10)
 
-        menubar = Menu(self.window)
-        menu1 = Menu(menubar, tearoff=0)
-        menu1.add_command(label="Load TC (Json)", command=tcload_callback)
-        menu1.add_command(label="Exit")
-        menubar.add_cascade(label="File", menu=menu1)
-        menu2 = Menu(menubar, tearoff=0)
-        menu2.add_command(label="About")
-        menubar.add_cascade(label="About", menu=menu2)
-        self.window.config(menu=menubar)
+        self.txt_log = scrolledtext.ScrolledText(self.frameBot, width=143, height=6)
+        self.txt_recv = scrolledtext.ScrolledText(self.frameBot, width=143, height=15)
+        self.lb_log = Label(self.frameTop, text="로그", width=10)
+
+        self.lb_url = Label(self.frameTop, text="WSS URL", width=10)
+        self.lb_rest_url = Label(self.frameTop, text="REST URL", width=10)
+        self.lb_cases = Label(self.frameTop, text="Test Case", width=10)
+        self.curProgress = tkinter.DoubleVar()
+        self.style = tkinter.ttk.Style()
+        self.style.theme_use('clam')
+        self.style.configure("1.Horizontal.TProgressbar", troughcolor='gray', background='green')
+        self.progressbar = tkinter.ttk.Progressbar(self.frameTop, style="1.Horizontal.TProgressbar", maximum=100, variable = self.curProgress)
+        self.lb_progress = Label(self.frameTop, text="진행률")
 
 
-        frame_txt_tc = Frame(frameTop, width=60, height=15)
-        frame_txt_tc_rendered = Frame(frameTop, width=60, height=15)
+        self.en_url = Entry(self.frameTop, width=60)
+        self.en_rest_url = Entry(self.frameTop, width=60)
+        self.en_url.insert(0,"wss://ws.devevspcharger.uplus.co.kr/ocpp16")
+        self.en_rest_url.insert(0, 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc')
 
-        txt_tc = scrolledtext.ScrolledText(frame_txt_tc, width=70, height=15)
-        txt_tc_rendered = scrolledtext.ScrolledText(frame_txt_tc_rendered, width=70, height=15)
-        txt_schema = scrolledtext.ScrolledText(frameTop, width=50, height=15)
-        lb_schema = Label(frameTop, text="OCPP Schema", width=10)
-        lst_tc = Listbox(frameTop, height=7, selectmode="extended", activestyle="none", width=70)
-        lb_txt_tc = Label(frameTop, text="OCPP Template", width=10)
+        self.lb_case = Label(self.frameTop, text="TC Body")
+        self.lb_protocol = Label(self.frameHat, text="프로토콜")
+        self.lb_sno = Label(self.frameHat, text="충전기ID(일반)")
+        self.lb_rsno = Label(self.frameHat, text="충전기ID(예약)")
+        self.lb_mdl = Label(self.frameHat, text="모델ID")
+        self.lb_cid = Label(self.frameHat, text="충전기CID(일반)", width=13)
+        self.lb_rcid = Label(self.frameHat, text="충전기CID(예약)", width=13)
+        options= [
+            "ocpp1.6(Websocket)",
+            "ocpp2.0(Websocket)"
+        ]
+        self.clicked = StringVar(self.frameHat)
+        self.clicked.set("ocpp1.6(Websocket)")
+        self.en_protocol = OptionMenu(self.frameHat, self.clicked, *options)
+        self.en_sno = Entry(self.frameHat)
+        self.en_rsno = Entry(self.frameHat)
+        self.en_sno.insert(0, "EVSCA070007")
+        self.en_cid = Entry(self.frameHat)
+        self.en_rcid = Entry(self.frameHat)
+        self.en_mdl = Entry(self.frameHat)
+        self.lb_token = Label(self.frameHat, text="Auth Token")
+        self.lb_tr = Label(self.frameHat, text="transactionId", width=10)
+        self.en_tr = Entry(self.frameHat)
+        self.en_token = Entry(self.frameHat)
+        self.lb_reserve = Label(self.frameHat, text="reserveId", width=5)
+        self.en_reserve = Entry(self.frameHat)
+        self.lb_status = Label(self.frameHat, text="Status", width=5)
+        self.en_status = Entry(self.frameHat)
+        self.lb_url_comp = Label(self.frameTop, text=self.en_url.get()+"/"+self.en_mdl.get()+"/"+self.en_sno.get())
+        self.lb_tc = Label(self.frameTop, text="Current TC", width=13)
+        self.en_tc = Entry(self.frameTop)
+        self.en_log = Entry(self.frameTop)
+        self.tc_result_rdo_frame = Frame(self.frameTop)
+        self.vtc_mode = IntVar()
+        self.lb_tc_mode = Label(self.frameTop, text="TC결과상세")
+        self.vtc_mode1 = Radiobutton(self.tc_result_rdo_frame, text="Doc Template", variable=self.vtc_mode, value=1)
 
-        txt_log = scrolledtext.ScrolledText(frameBot, width=143, height=6)
-        txt_recv = scrolledtext.ScrolledText(frameBot, width=143, height=15)
-        txt_recv.tag_config('blue', foreground='blue')
-        txt_recv.tag_config('green', foreground='green')
-        txt_recv.tag_config('red', foreground='red')
+        self.vtc_mode2 = Radiobutton(self.tc_result_rdo_frame, text="Doc Rendered", variable=self.vtc_mode, value=2)
+        self.lb_txt = Label(self.frameBot, text="실행로그", width=10)
+        self.lb_recv = Label(self.frameBot, text="송수신로그", width=10)
+        self.s=tk.ttk.Separator(self.frameBot, orient="horizontal")
+        """Configuration Tab"""
+        """========================================================="""
+
+        self.lb_idtag1 = Label(self.frameConfTop, text="idTag1", width=20)
+        self.en_idtag1 = Entry(self.frameConfTop)
+        self.lb_idtag2 = Label(self.frameConfTop, text="idTag2", width=20)
+        self.en_idtag2 = Entry(self.frameConfTop)
+        self.lb_idtag3 = Label(self.frameConfTop, text="idTag3", width=20)
+        self.en_idtag3 = Entry(self.frameConfTop)
+
+        self.lb_timestamp1 = Label(self.frameConfTop, text="$ctime", width=25)
+        self.en_timestamp1 = Entry(self.frameConfTop)
+        self.lb_timestamp2 = Label(self.frameConfTop, text="($ctime+$interval1) - seconds", width=25)
+        self.en_timestamp2 = Entry(self.frameConfTop)
+        self.lb_timestamp3 = Label(self.frameConfTop, text="($ctime+$interval2) - seconds", width=25)
+        self.en_timestamp3 = Entry(self.frameConfTop)
+
+        self.vmode = IntVar()
+        self.lb_mode = Label(self.rdo_frame, text="원격제어방법")
+        self.lb_mode_alert = Label(self.rdo_frame, text="", fg='red')
+        self.test_mode1 = Radiobutton(self.rdo_frame, text="Local호출", variable=self.vmode, value=1)
+        self.test_mode2 = Radiobutton(self.rdo_frame, text="CSMS", variable=self.vmode, value=2)
+        self.vmode.set(1)
+        self.bt_conn = Button(self.bt_frame, text="시험 중지", command=async_handler(self.stopCharger), state=DISABLED, width=15)
+        self.bt_start = Button(self.bt_frame, text="TC 실행", command=async_handler(self.startEvent), width=15)
+        self.bt_reload = Button(self.bt_frame, text="TC Reload", width=15)
+        self.bt_close = Button(self.bt_frame, text="시뮬레이터 종료", command=async_handler(self.closeEvent), width=15)
+        self.bt_savetc = Button(self.bt_rframe, text="변경TC 저장", width=15, command=self.saveocpp)
+        self.bt_direct_send = Button(self.bt_rframe, text="전문직접전송(To 충전기)", width=20, bg="lightgreen", command=self.directClientSend, state="disabled")
+        self.lb_save_notice = Label(self.bt_rframe)
+        self.bt_savetc.config(state='disabled')
+
+        self.interval1 = ((datetime.now() + timedelta(
+            seconds=int(self.en_timestamp2.get()))).isoformat(sep='T',
+                                                         timespec='seconds') + 'Z') if self.en_timestamp2.get() else 0
+        self.interval2 = ((datetime.now() + timedelta(
+            seconds=int(self.en_timestamp3.get()))).isoformat(sep='T',
+                                                         timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
+
+        self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
+                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': self.interval1,
+                      '$ctime+$interval2': self.interval2, '$crgr_mdl':self.en_mdl.get(), '$crgr_sno':self.en_sno.get(),
+                      '$crgr_rsno':self.en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':self.en_tr.get(), '$reservationId':self.en_reserve.get()}
+
+
+    def startApp(self):
+
+        self.menu1.add_command(label="Load TC (Json)", command=self.tcload_callback)
+        self.bt_conn.configure(command=async_handler(self.stopCharger))
+        self.menu1.add_command(label="Exit")
+        self.menubar.add_cascade(label="File", menu=self.menu1)
+        self.menu2.add_command(label="About")
+        self.menubar.add_cascade(label="About", menu=self.menu2)
+
+        self.txt_recv.tag_config('blue', foreground='blue')
+        self.txt_recv.tag_config('green', foreground='green')
+        self.txt_recv.tag_config('red', foreground='red')
 
         # Create textLogger
-        text_handler = TextHandler(txt_log)
+        text_handler = TextHandler(self.txt_log)
 
         # Logging configuration
         logging.basicConfig(filename='test.log',
@@ -200,525 +551,129 @@ class MyApp(tk.Tk):
         logger.addHandler(text_handler)
         self.status = 0
 
-        def checkocpp(event):
-            import jsonschema
-            key = None
-            try:
-                doc = event.widget.get("1.0", END)
-                doc = json.loads(doc)
-                key = list(doc.keys())[0]
-                with open("./schemas/" + key + ".json") as fd:
-                    schema = fd.read().encode('utf-8')
-
-                if str(key).endswith("Response") :
-                    target =doc[key][2]
-                else:
-                    target =doc[key][3]
-
-                jsonschema.validate(instance=target, schema=json.loads(schema))
-                self.org_ocppdocs[key] = doc[key]
-                #bt_savetc.config(state='normal')
-                bt_savetc['state'] = tk.NORMAL
-                lb_save_notice['text'] = "전문 템플릿이 변경되었습니다. \n유지 하시려면 변경TC를 저장하십시오"
-            except jsonschema.exceptions.ValidationError as e:
-                tkinter.messagebox.showerror(title="알림", message=f"변경된 내용이 {key} 전문 형식에 맞지 않습니다. {e.message}")
-            except json.decoder.JSONDecodeError as e:
-                tkinter.messagebox.showerror(title="알림", message="변경 내용이 Json Format에 맞지 않습니다.")
-                return False
-        def saveocpp():
-            try :
-                with open("ocpp.json","w") as fd:
-                    fd.write(json.dumps(self.org_ocppdocs, indent=2))
-                tkinter.messagebox.showinfo(title="성공", message="ocpp template이 저장 되었습니다.")
-                bt_savetc['state'] = tk.DISABLED
-                lb_save_notice['text'] = ""
-                with open("./ocpp.json", encoding='utf-8') as fd:
-                    self.ocppdocs = json.loads(fd.read())
-            except Exception as e:
-                tkinter.messagebox.showerror(title="오류", message="ocpp template 저장 중 오류 발생")
-
-        async def startEvent():
-            # if self.status == 0:
-            #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
-            #     #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
-            #     return
-            #
-            # self.status=0
-            bt_conn['state'] = tk.NORMAL
-
-            config_update()
-            # TC_update()
-            en_log.delete(0, END)
-            en_status.delete(0, END)
-            en_status.insert(0, "Running")
-            if not self.TC_selected  :
-                for tc in self.TC_original.keys():
-                    for t in self.TC_original[tc]:
-                        lst_tc.insert(END, t)
-
-            self.charger = Charger(self.config)
-            await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
-            en_status.delete(0, END)
-            en_status.insert(0, "Test Finished")
-            bt_conn['state'] = tk.DISABLED
-            tkinter.messagebox.showinfo(title="완료", message="TC 수행을 완료했습니다.")
-            txt_tc.delete("0.0", END)
-            curProgress.set(0)
-            progressbar.update()
-
-        def directClientSend():
-            # if self.status == 0:
-            #     messagebox.showwarning(title="소켓연결", message="소켓 연결 후 시작 하십시오")
-            #     #     messagebox.showwarning("소켓 연결 후 TC실행 해 주세요", "경고")
-            #     return
-            #
-            # self.status=0
-            import copy
-            bt_conn['state'] = tk.NORMAL
-            config_update()
-            # TC_update()
-            en_log.delete(0, END)
-            en_status.delete(0, END)
-            en_status.insert(0, "Running")
-            item = lst_tc.curselection()[0]
-            """ 템플릿 전문 [2, 3213123, ... """
-            ocpp = copy.deepcopy(self.org_ocppdocs[lst_tc.get(item)[1]])
-            """ {} 내부 """
-
-            lst_body = json.loads((lst_tc.get(item)[2]).replace("\'", "\""))
-
-            """TC내 지정 전문 변환"""
-            for c in lst_body.keys():
-                ocpp[3][c] = lst_body[c]
-
-            """변수값 치환 변환"""
-            for k in self.ConfV.keys():
-                tc_render(ocpp[3], k)
-
-            sendToClient(ocpp)
-            en_status.delete(0, END)
-            en_status.insert(0, "전문 Client 전송 완료")
-            bt_conn['state'] = tk.DISABLED
-
-        async def closeEvent():
-            self.window.destroy()
-
-        async def stopCharger():
-            lb_mode_alert['text'] =""
-            await self.charger.close()
-
-
-        lb_log = Label(frameTop, text="로그", width=10)
-
-        lb_url = Label(frameTop, text="WSS URL", width=10)
-        lb_rest_url = Label(frameTop, text="REST URL", width=10)
-        lb_cases = Label(frameTop, text="Test Case", width=10)
-        curProgress = tkinter.DoubleVar()
-        style = tkinter.ttk.Style()
-        style.theme_use('clam')
-        style.configure("1.Horizontal.TProgressbar", troughcolor='gray', background='green')
-        progressbar = tkinter.ttk.Progressbar(frameTop, style="1.Horizontal.TProgressbar", maximum=100, variable = curProgress)
-        lb_progress = Label(frameTop, text="진행률")
-
-
-        en_url = Entry(frameTop, width=60)
-        en_rest_url = Entry(frameTop, width=60)
-
-
-
-        en_url.insert(0,"wss://ws.devevspcharger.uplus.co.kr/ocpp16")
-        en_rest_url.insert(0, 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc')
-        lb_case = Label(frameTop, text="TC Body")
-
-       # txt_tc.config(state=tk.DISABLED)
-
-        lb_protocol = Label(frameHat, text="프로토콜")
-        lb_sno = Label(frameHat, text="충전기ID(일반)")
-        lb_rsno = Label(frameHat, text="충전기ID(예약)")
-        lb_mdl = Label(frameHat, text="모델ID")
-
-        lb_cid = Label(frameHat, text="충전기CID(일반)", width=13)
-        lb_rcid = Label(frameHat, text="충전기CID(예약)", width=13)
-        options= [
-            "ocpp1.6(Websocket)",
-            "ocpp2.0(Websocket)"
-        ]
-        clicked = StringVar(frameHat)
-        clicked.set("ocpp1.6(Websocket)")
-        en_protocol = OptionMenu(frameHat, clicked, *options)
-
-        en_sno = Entry(frameHat)
-        en_sno.insert(0, "EVSCA070007")
-        en_rsno = Entry(frameHat)
-        en_rsno.insert(0, "EVSCA070008")
-        en_cid = Entry(frameHat)
-        en_cid.insert(0, "115001513031A")
-        en_rcid = Entry(frameHat)
-        en_rcid.insert(0, "115001513041A")
-        en_mdl = Entry(frameHat)
-        en_mdl.insert(0, "ELA007C01")
-        lb_token = Label(frameHat, text="Auth Token")
-        lb_tr = Label(frameHat, text="transactionId", width=10)
-        en_tr = Entry(frameHat)
-        en_token = Entry(frameHat)
-        en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
-        lb_reserve = Label(frameHat, text="reserveId", width=5)
-        en_reserve = Entry(frameHat)
-        lb_status = Label(frameHat, text="Status", width=5)
-        en_status = Entry(frameHat)
-        en_status.insert(0, 'Idle')
-
-        lb_protocol.grid(row=0, column=0, sticky="we")
-        en_protocol.grid(row=0, column=1, sticky="we")
-        lb_sno.grid(row=0, column=2, sticky="we")
-        en_sno.grid(row=0, column=3, sticky="we")
-        lb_rsno.grid(row=0, column=4, sticky="we")
-        en_rsno.grid(row=0, column=5, sticky="we")
-        lb_cid.grid(row=0, column=6, sticky="we")
-        en_cid.grid(row=0, column=7, sticky="we")
-        lb_rcid.grid(row=0, column=8, sticky="we")
-        en_rcid.grid(row=0, column=9)
-
-        lb_mdl.grid(row=1, column=0, sticky="we")
-        en_mdl.grid(row=1, column=1, sticky="we")
-        lb_token.grid(row=1, column=2, sticky="we")
-        en_token.grid(row=1, column=3, sticky="we")
-        lb_tr.grid(row=1, column=4, sticky="we")
-        en_tr.grid(row=1, column=5, sticky="we")
-        lb_reserve.grid(row=1, column=6, sticky="we")
-        en_reserve.grid(row=1, column=7, sticky="we")
-        lb_status.grid(row=1, column=8, sticky="we")
-        en_status.grid(row=1, column=9, sticky="we")
-
-
-        lb_url_comp = Label(frameTop, text=en_url.get()+"/"+en_mdl.get()+"/"+en_sno.get())
-
-
-
-
-        def show_txt_tc():
-            frame_txt_tc_rendered.grid_remove()
-            frame_txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
-
-        def show_txt_tc_rendered():
-            frame_txt_tc.grid_remove()
-            frame_txt_tc_rendered.grid(row=8, column=3, rowspan=3, sticky="we")
-
-
-
-        lb_url.grid(row=3, column=0, sticky="we")
-        lb_rest_url.grid(row=5, column=0, sticky="we")
-
-
-        en_url.grid(row=3, column=1, sticky="we")
-        lb_progress.grid(row=3, column=2, sticky="we")
-        progressbar.grid(row=3, column=3, sticky="we")
-        lb_url_comp.grid(row=4, column=1, sticky="w")
-        en_rest_url.grid(row=5, column=1, sticky="we")
-        lb_tc = Label(frameTop, text="Current TC", width=13)
-        lb_tc.grid(row=5, column=2, sticky="we")
-        en_tc = Entry(frameTop)
-        en_tc.config(state='disabled')
-        en_tc.grid(row=5, column=3, sticky="we")
-
-        lb_cases.grid(row=6, column=0, sticky="we")
-        lst_cases.grid(row=6, column=1, sticky="we")
-        lb_log.grid(row=7, column=0, sticky="we")
-        en_log = Entry(frameTop)
-        en_log.grid(row=7, column=1, sticky="we")
-
-        tc_result_rdo_frame = Frame(frameTop)
-        tc_result_rdo_frame.grid(row=7, column=3, columnspan=2, sticky="w")
-        vtc_mode = IntVar()
-        lb_tc_mode = Label(frameTop, text="TC결과상세")
-        lb_tc_mode.grid(row=7, column=2)
-        vtc_mode1 = Radiobutton(tc_result_rdo_frame, text="Doc Template", variable=vtc_mode, value=1, command=show_txt_tc)
-        vtc_mode2 = Radiobutton(tc_result_rdo_frame, text="Doc Rendered", variable=vtc_mode, value=2, command=show_txt_tc_rendered)
-        vtc_mode1.grid(row=0, column=1)
-        vtc_mode2.grid(row=0, column=2)
-        vtc_mode.set(1)
-
-        lb_schema.grid(row=8, column=0, sticky="we")
-        txt_schema.grid(row=8, column=1, sticky="we")
-
-
-
-
-        lb_case.grid(row=6, column=2)
-        frame_txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
-        #frame_txt_tc_rendered.grid(row=8, column = 3, rowspan=3, sticky="we")
-
-        txt_tc.grid(row=0, column=0, rowspan=3, sticky="we")
-        txt_tc_rendered.grid(row=0, column=0, rowspan=3, sticky="we")
-        lb_txt_tc.grid(row=8, column=2, sticky="we")
-
-        lst_tc.grid(row=6, column=3, sticky="we")
-
-
-
-
-
-        lb_txt = Label(frameBot, text="실행로그", width=10)
-        lb_recv = Label(frameBot, text="송수신로그", width=10)
-
-        lb_txt.grid(row=0, column=0)
-        txt_log.grid(row=0, column=1, columnspan=3)
-        s=tk.ttk.Separator(frameBot, orient="horizontal")
-        s.grid(row=1, column=1, sticky='ew', columnspan=3)
-        lb_recv.grid(row=2, column=0)
-        txt_recv.grid(row=2, column=1, columnspan=3)
-
-
-        """Configuration Tab"""
-        """========================================================="""
-
-        lb_idtag1 = Label(frameConfTop, text="idTag1", width=20)
-        en_idtag1 = Entry(frameConfTop)
-        lb_idtag2 = Label(frameConfTop, text="idTag2", width=20)
-        en_idtag2 = Entry(frameConfTop)
-        lb_idtag3 = Label(frameConfTop, text="idTag3", width=20)
-        en_idtag3 = Entry(frameConfTop)
-
-        lb_idtag1.grid(row=0, column=0)
-        lb_idtag2.grid(row=1, column=0)
-        lb_idtag3.grid(row=2, column=0)
-        en_idtag1.grid(row=0, column=1)
-        en_idtag1.insert(0, '1031040000069641')
-        en_idtag2.grid(row=1, column=1)
-        en_idtag3.grid(row=2, column=1)
-        lb_timestamp1 = Label(frameConfTop, text="$ctime", width=25)
-        en_timestamp1 = Entry(frameConfTop)
-        lb_timestamp2 = Label(frameConfTop, text="($ctime+$interval1) - seconds", width=25)
-        en_timestamp2 = Entry(frameConfTop)
-        lb_timestamp3 = Label(frameConfTop, text="($ctime+$interval2) - seconds", width=25)
-        en_timestamp3 = Entry(frameConfTop)
-        lb_timestamp1.grid(row=0, column=2)
-        lb_timestamp2.grid(row=1, column=2)
-        lb_timestamp3.grid(row=2, column=2)
-        en_timestamp1.grid(row=0, column=3)
-        en_timestamp2.grid(row=1, column=3)
-        en_timestamp3.grid(row=2, column=3)
-        rdo_frame = Frame(frameTop)
-        rdo_frame.grid(row=12, column=0, columnspan=4, sticky="W", padx=10, pady=10)
-        bt_frame = Frame(frameTop)
-        bt_frame.grid(row=13, column=0, columnspan=4, sticky="we", padx=10, pady=10)
-        bt_rframe = Frame(frameTop)
-        bt_rframe.grid(row=13, column=2, columnspan=4, sticky="e", padx=10, pady=10)
-        vmode = IntVar()
-        lb_mode = Label(rdo_frame, text="원격제어방법")
-        lb_mode_alert = Label(rdo_frame, text="", fg='red')
-        lb_mode.grid(row=0, column=0)
-        test_mode1 = Radiobutton(rdo_frame, text="Local호출", variable=vmode, value=1)
-        test_mode2 = Radiobutton(rdo_frame, text="CSMS", variable=vmode, value=2)
-        lb_mode_alert.grid(row=0, column=4, sticky="e")
-        test_mode1.grid(row=0, column=1)
-        test_mode2.grid(row=0, column=2)
-
-        vmode.set(1)
-        bt_conn = Button(bt_frame, text="시험 중지", command=async_handler(stopCharger), state=DISABLED, width=15)
-        bt_start = Button(bt_frame, text="TC 실행", command=async_handler(startEvent), width=15)
-        bt_reload = Button(bt_frame, text="TC Reload", width=15)
-        bt_close = Button(bt_frame, text="시뮬레이터 종료", command=async_handler(closeEvent), width=15)
-        bt_savetc = Button(bt_rframe, text="변경TC 저장", width=15, command=saveocpp)
-        bt_direct_send = Button(bt_rframe, text="전문직접전송(To 충전기)", width=20, bg="lightgreen", command=directClientSend, state="disabled")
-        bt_conn.grid(row=1, column=0, ipady=3, pady=3, sticky="w")
-        bt_start.grid(row=1, column=1, ipady=3, pady=3, sticky="w")
-        bt_reload.grid(row=1, column=2, ipady=3, pady=3, sticky="w")
-        bt_close.grid(row=1, column=3, ipady=3, pady=3, sticky="E")
-        bt_direct_send.grid(row=1, column=1, ipady=3, pady=3, sticky="WE")
-        bt_savetc.grid(row=1, column=2, ipady=3, pady=3, sticky="WE")
-        lb_save_notice = Label(bt_rframe)
-        lb_save_notice.grid(row=1, column=0, sticky="e")
-
-        bt_savetc.config(state='disabled')
-
-        # self.ConfV = {'$idTag1': en_idtag1, '$idTag2': en_idtag2, '$idTag3': en_idtag3,
-        #               '$ctime': en_timestamp1, '$ctime+$interval1': en_timestamp2,
-        #               '$ctime+$interval2': en_timestamp3, '$crgr_mdl': en_mdl, '$crgr_sno': en_sno,
-        #               '$crgr_rsno': en_rsno}
-
-        interval1 = ((datetime.now() + timedelta(
-            seconds=int(en_timestamp2.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if en_timestamp2.get() else 0
-        interval2 = ((datetime.now() + timedelta(
-            seconds=int(en_timestamp3.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if en_timestamp3.get() else 0
-
-        self.ConfV = {'$idTag1': en_idtag1.get(), '$idTag2': en_idtag2.get(), '$idTag3': en_idtag3.get(),'$idTag': en_idtag1.get(),
-                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': interval1,
-                      '$ctime+$interval2': interval2, '$crgr_mdl': en_mdl.get(), '$crgr_sno': en_sno.get(),
-                      '$crgr_rsno': en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': en_tr.get(),
-                      '$reservationId': en_reserve.get()}
-
-        def wssRenew(event):
-            lb_url_comp.config(text=en_url.get()+'/'+en_mdl.get()+'/'+en_sno.get())
-
-
-        def onSelect(event):
-            w = event.widget
-            self.TC_selected ={}
-            for s in w.curselection():
-                self.TC_selected[w.get(s).split()[0]] = self.TC[w.get(s).split()[0]]
-                en_tc.config(state='normal')
-                en_tc.delete(0,END)
-                en_tc.insert(0,w.get(s).split())
-                en_tc.config(state='disabled')
-            if w.curselection() :
-                index = int(w.curselection()[0])
-                en_log.delete(0,END)
-                en_log.insert(END, self.TC_result[index])
-                lst_tc.delete(0,END)
-                for c in self.TC_selected :
-                    for tc in self.TC_original[c]:
-                        lst_tc.insert(END, tc)
-
-        def onSelectTcItem(event):
-            import copy
-            w = event.widget
-            items= [ w.get(s) for s in w.curselection() ]
-            if not items :
-                return
-
-            text_item = {}
-            for item in items :
-                if item[0]  in ('Wait', 'Reply') :
-                    text_item[item[1]]=self.org_ocppdocs[item[1]]
-                    bt_direct_send['state'] = tk.NORMAL
-                else :
-                    text_item[item[0]]=self.org_ocppdocs[item[0]]
-                    bt_direct_send['state'] = tk.DISABLED
-
-            txt_tc.delete(1.0, END)
-            txt_tc.insert(END, json.dumps(text_item, indent=2))
-
-            doc = copy.deepcopy(text_item)
-            for k in self.ConfV.keys():
-                tc_render(doc, k)
-
-            txt_tc_rendered.delete(1.0, END)
-            txt_tc_rendered.insert(END, json.dumps(doc, indent=2))
-
-            schemas = {}
-            for msgid in text_item.keys():
-                with open(f"./schemas/{msgid}.json", encoding='utf-8') as fd:
-                    schemas['Request'] = json.loads(fd.read())
-                with open(f"./schemas/{msgid}Response.json", encoding='utf-8') as fd:
-                    schemas['Response'] = json.loads(fd.read())
-            # schemas = schemas
-            txt_schema.delete(1.0, END)
-            txt_schema.insert(END, json.dumps(schemas, indent=2))
-
-        def TC_update():
-            from datetime import timedelta
-            ctime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
-            try :
-                for v in self.ConfV.keys():
-                    #print(self.ConfV[v].get())
-                    if v == "$ctime" :
-
-                        ConfRV[v] = ctime
-                    elif v == "$ctime+$interval1" and len(self.ConfV[v].get()) > 0:
-                        ConfRV[v] = (datetime.now() +
-                                          timedelta(seconds=int(self.ConfV[v].get()))).isoformat(sep='T',
-                                                                                            timespec='seconds')+'Z'
-                    elif v == "$ctime+$interval2" and len(self.ConfV[v].get()) > 0:
-                        ConfRV[v] = (datetime.now() +
-                                         timedelta(seconds=int(self.ConfV[v].get()))).isoformat(sep='T',
-                                                                                           timespec='seconds')+'Z"'
-                    else:
-                        ConfRV[v] = self.ConfV[v].get()
-                    tc_render(self.TC, v)
-            except ValueError as err:
-                vtmp = ''.join(c for c in self.ConfV[v].get() if c.isdigit())
-                self.ConfV[v].delete(0,END)
-                self.ConfV[v].insert(0,vtmp)
-        def load_default_tc():
-            import copy
-            try :
-                en_log.delete(0, END)
-                with open("./props.json", encoding='utf-8') as fd:
-                    self.TC = json.loads(fd.read())
-                self.TC_original = copy.deepcopy(self.TC)
-                self.init_result()
-                with open("./ocpp.json", encoding='utf-8') as fd:
-                    self.ocppdocs = json.loads(fd.read())
-                    self.org_ocppdocs = copy.deepcopy(self.ocppdocs)
-
-            except Exception as err:
-                en_log.insert(0, "Please Check your TC json file.")
-                return
-            lst_cases.delete(0,END)
-            for item in self.TC.keys():
-                lst_cases.insert(END, item )
-
-            self.init_result()
-
-        def copy(event: tk.Event = None) -> str:
-            try:
-                text = event.widget.selection_get()
-                pyperclip.copy(text)
-            except tk.TclError:
-                pass
-            return "break"
-
-        # def onEnter(event):
-        #     index = event.widget.index("%s, %s" %(event.x, event.y))
-
-        """props.json 파일(기본TC파일) 로드"""
-        def reload_tc(event) :
-            load_default_tc()
-
-        def lst_cases_double_click(event):
-            w = event.widget
-            idx = w.curselection()[0]
-            #print(lst_cases.get(idx))
-            line = txt_recv.search(lst_cases.get(idx).split()[0], "0.0", stopindex=END)
-            if line :
-                txt_recv.see(line)
-
-        load_default_tc()
-
-        en_sno.bind('<KeyRelease>', wssRenew)
-        en_mdl.bind('<KeyRelease>', wssRenew)
-        lst_cases.bind('<<ListboxSelect>>', onSelect)
-        lst_tc.bind('<<ListboxSelect>>', onSelectTcItem)
-        txt_schema.bind("<Key>", lambda e: "break")
-        bt_reload.bind("<Button-1>", reload_tc)
-        #bt_savetc.bind("<Button-1>", saveocpp)
-        txt_tc.bind('<FocusOut>', checkocpp)
-        txt_tc.bind('<Control-c>', copy)
-        txt_tc_rendered.bind('<Control-c>', copy)
-        lst_cases.bind('<Double-Button>', lst_cases_double_click)
-        # en_idtag1.bind('<KeyRelease>', onChangeConfig)
-        # en_idtag2.bind('<KeyRelease>', onChangeConfig)
-        # en_idtag3.bind('<KeyRelease>', onChangeConfig)
-        # en_timestamp2.bind('<KeyRelease>', onChangeConfig)
-        # en_timestamp3.bind('<KeyRelease>', onChangeConfig)
-        async def on_closing():
-            import sys
-            if bt_savetc['state'] == tk.NORMAL :
-                if messagebox.askokcancel("종료", "편집 중인 전문이 있습니다. 종료 하시겠습니까?"):
-                    await closeEvent()
-                else:
-                    return
-            await closeEvent()
-
-        self.window.protocol("WM_DELETE_WINDOW", async_handler(on_closing))
-
-        def set_time_label():
-            from datetime import datetime
-            currentTime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
-            en_timestamp1.delete(0, END)
-            en_timestamp1.insert(0, currentTime)
-            self.tab2.after(1, set_time_label)
-
-
-        set_time_label()
+        self.en_rsno.insert(0, "EVSCA070008")
+        self.en_cid.insert(0, "115001513031A")
+        self.en_rcid.insert(0, "115001513041A")
+        self.en_mdl.insert(0, "ELA007C01")
+        self.en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
+        self.en_status.insert(0, 'Idle')
+        self.lb_protocol.grid(row=0, column=0, sticky="we")
+        self.en_protocol.grid(row=0, column=1, sticky="we")
+        self.lb_sno.grid(row=0, column=2, sticky="we")
+        self.en_sno.grid(row=0, column=3, sticky="we")
+        self.lb_rsno.grid(row=0, column=4, sticky="we")
+        self.en_rsno.grid(row=0, column=5, sticky="we")
+        self.lb_cid.grid(row=0, column=6, sticky="we")
+        self.en_cid.grid(row=0, column=7, sticky="we")
+        self.lb_rcid.grid(row=0, column=8, sticky="we")
+        self.en_rcid.grid(row=0, column=9)
+        self.lb_mdl.grid(row=1, column=0, sticky="we")
+        self.en_mdl.grid(row=1, column=1, sticky="we")
+        self.lb_token.grid(row=1, column=2, sticky="we")
+        self.en_token.grid(row=1, column=3, sticky="we")
+        self.lb_tr.grid(row=1, column=4, sticky="we")
+        self.en_tr.grid(row=1, column=5, sticky="we")
+        self.lb_reserve.grid(row=1, column=6, sticky="we")
+        self.en_reserve.grid(row=1, column=7, sticky="we")
+        self.lb_status.grid(row=1, column=8, sticky="we")
+        self.en_status.grid(row=1, column=9, sticky="we")
+        self.vtc_mode1.configure(command=self.show_txt_tc)
+        self.vtc_mode2.configure(command=self.show_txt_tc_rendered)
+        self.lb_url.grid(row=3, column=0, sticky="we")
+        self.lb_rest_url.grid(row=5, column=0, sticky="we")
+        self.en_url.grid(row=3, column=1, sticky="we")
+        self.lb_progress.grid(row=3, column=2, sticky="we")
+        self.progressbar.grid(row=3, column=3, sticky="we")
+        self.lb_url_comp.grid(row=4, column=1, sticky="w")
+        self.en_rest_url.grid(row=5, column=1, sticky="we")
+        self.lb_tc.grid(row=5, column=2, sticky="we")
+        self.en_tc.config(state='disabled')
+        self.en_tc.grid(row=5, column=3, sticky="we")
+        self.lb_cases.grid(row=6, column=0, sticky="we")
+        self.lst_cases.grid(row=6, column=1, sticky="we")
+        self.lb_log.grid(row=7, column=0, sticky="we")
+        self.en_log.grid(row=7, column=1, sticky="we")
+        self.tc_result_rdo_frame.grid(row=7, column=3, columnspan=2, sticky="w")
+        self.lb_tc_mode.grid(row=7, column=2)
+        self.vtc_mode1.grid(row=0, column=1)
+        self.vtc_mode2.grid(row=0, column=2)
+        self.vtc_mode.set(1)
+        self.lb_schema.grid(row=8, column=0, sticky="we")
+        self.txt_schema.grid(row=8, column=1, sticky="we")
+        self.lb_case.grid(row=6, column=2)
+        self.frame_txt_tc.grid(row=8, column=3, rowspan=3, sticky="we")
+        self.txt_tc.grid(row=0, column=0, rowspan=3, sticky="we")
+        self.txt_tc_rendered.grid(row=0, column=0, rowspan=3, sticky="we")
+        self.lb_txt_tc.grid(row=8, column=2, sticky="we")
+        self.lst_tc.grid(row=6, column=3, sticky="we")
+
+        self.lb_txt.grid(row=0, column=0)
+        self.txt_log.grid(row=0, column=1, columnspan=3)
+        self.s.grid(row=1, column=1, sticky='ew', columnspan=3)
+        self.lb_recv.grid(row=2, column=0)
+        self.txt_recv.grid(row=2, column=1, columnspan=3)
+
+        self.lb_idtag1.grid(row=0, column=0)
+        self.lb_idtag2.grid(row=1, column=0)
+        self.lb_idtag3.grid(row=2, column=0)
+        self.en_idtag1.grid(row=0, column=1)
+        self.en_idtag1.insert(0, '1031040000069641')
+        self.en_idtag2.grid(row=1, column=1)
+        self.en_idtag3.grid(row=2, column=1)
+
+        self.lb_timestamp1.grid(row=0, column=2)
+        self.lb_timestamp2.grid(row=1, column=2)
+        self.lb_timestamp3.grid(row=2, column=2)
+        self.en_timestamp1.grid(row=0, column=3)
+        self.en_timestamp2.grid(row=1, column=3)
+        self.en_timestamp3.grid(row=2, column=3)
+        self.rdo_frame.grid(row=12, column=0, columnspan=4, sticky="W", padx=10, pady=10)
+        self.bt_frame.grid(row=13, column=0, columnspan=4, sticky="we", padx=10, pady=10)
+        self.bt_rframe.grid(row=13, column=2, columnspan=4, sticky="e", padx=10, pady=10)
+
+        self.lb_mode.grid(row=0, column=0)
+        self.lb_mode_alert.grid(row=0, column=4, sticky="e")
+        self.test_mode1.grid(row=0, column=1)
+        self.test_mode2.grid(row=0, column=2)
+        self.bt_conn.grid(row=1, column=0, ipady=3, pady=3, sticky="w")
+        self.bt_start.grid(row=1, column=1, ipady=3, pady=3, sticky="w")
+        self.bt_reload.grid(row=1, column=2, ipady=3, pady=3, sticky="w")
+        self.bt_close.grid(row=1, column=3, ipady=3, pady=3, sticky="E")
+        self.bt_direct_send.grid(row=1, column=1, ipady=3, pady=3, sticky="WE")
+        self.bt_savetc.grid(row=1, column=2, ipady=3, pady=3, sticky="WE")
+        self.lb_save_notice.grid(row=1, column=0, sticky="e")
+
+        self.interval1 = ((datetime.now() + timedelta(
+            seconds=int(self.en_timestamp2.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if self.en_timestamp2.get() else 0
+        self.interval2 = ((datetime.now() + timedelta(
+            seconds=int(self.en_timestamp3.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
+
+        self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
+                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': self.interval1,
+                      '$ctime+$interval2': self.interval2, '$crgr_mdl': self.en_mdl.get(), '$crgr_sno': self.en_sno.get(),
+                      '$crgr_rsno': self.en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': self.en_tr.get(),
+                      '$reservationId': self.en_reserve.get()}
+
+        self.en_sno.bind('<KeyRelease>', self.wssRenew)
+        self.en_mdl.bind('<KeyRelease>', self.wssRenew)
+        self.lst_cases.bind('<<ListboxSelect>>', self.onSelect)
+        self.lst_tc.bind('<<ListboxSelect>>', self.onSelectTcItem)
+        self.txt_schema.bind("<Key>", lambda e: "break")
+        self.bt_reload.bind("<Button-1>", self.reload_tc)
+        self.txt_tc.bind('<FocusOut>', self.checkocpp)
+        self.txt_tc.bind('<Control-c>', self.ctrlc)
+        self.txt_tc_rendered.bind('<Control-c>', self.ctrlc)
+        self.lst_cases.bind('<Double-Button>', self.lst_cases_double_click)
+        self.window.protocol("WM_DELETE_WINDOW", async_handler(self.on_closing))
+        self.set_time_label()
+
+        self.load_default_tc()
         async_mainloop(self.window)
+
 def main(async_loop):
-    import time
-    me = MyApp()
+    ChargerSim()
 
 if __name__ == "__main__":
-    # async_loop = asyncio.get_event_loop()
     async_loop = asyncio.new_event_loop()
     asyncio.set_event_loop(async_loop)
     main(async_loop)
