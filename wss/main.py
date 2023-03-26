@@ -78,6 +78,9 @@ class ChargerSim(tk.Tk):
     def checkocpp(self, event):
         import jsonschema
         key = None
+        print(self.vtxt_tc_changed.get())
+        if self.vtxt_tc_changed.get() == 0 :
+            return
         try:
             doc = event.widget.get("1.0", END)
             doc = json.loads(doc)
@@ -95,6 +98,7 @@ class ChargerSim(tk.Tk):
             #bt_savetc.config(state='normal')
             self.bt_savetc['state'] = tk.NORMAL
             self.lb_save_notice['text'] = "전문 템플릿이 변경되었습니다. \n유지 하시려면 변경TC를 저장하십시오"
+            self.vtxt_tc_changed.set(0)
         except jsonschema.exceptions.ValidationError as e:
             messagebox.showerror(title="알림", message=f"변경된 내용이 {key} 전문 형식에 맞지 않습니다. {e.message}")
         except json.decoder.JSONDecodeError as e:
@@ -351,7 +355,16 @@ class ChargerSim(tk.Tk):
         response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
 
     def testschemChanged(self, *args):
+        """
+        테스트 프로토콜 변경시 TC 재 로드
+        :param args:
+        :return:
+        """
         self.load_default_tc()
+
+    def txt_tc_changed(self, event):
+        print(self.vtxt_tc_changed.get())
+        self.vtxt_tc_changed.set(1)
 
     def init_result(self):
         self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
@@ -374,6 +387,7 @@ class ChargerSim(tk.Tk):
 
         self.status = 1
         self.ConfRV = {}
+        self.vtxt_tc_changed = IntVar()
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
         self.window.geometry("1160x990+500+100")
         self.window.resizable(True, True)
@@ -659,6 +673,7 @@ class ChargerSim(tk.Tk):
         self.bt_reload.bind("<Button-1>", self.reload_tc)
         self.txt_tc.bind('<FocusOut>', self.checkocpp)
         self.txt_tc.bind('<Control-c>', self.ctrlc)
+        self.txt_tc.bind('<KeyRelease>', self.txt_tc_changed)
         self.txt_tc_rendered.bind('<Control-c>', self.ctrlc)
         self.lst_cases.bind('<Double-Button>', self.lst_cases_double_click)
         self.window.protocol("WM_DELETE_WINDOW", async_handler(self.on_closing))

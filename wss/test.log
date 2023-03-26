@@ -332,3 +332,58 @@ AttributeError: 'Charger' object has no attribute 'checkSchema'
 2023-03-26 13:40:05,895 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
 2023-03-26 13:40:05,897 - DEBUG - = connection is CLOSED
 2023-03-26 13:40:05,900 - DEBUG - x closing TCP connection
+2023-03-26 21:44:16,889 - DEBUG - = connection is CONNECTING
+2023-03-26 21:44:16,904 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 21:44:16,905 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 21:44:16,905 - DEBUG - > Upgrade: websocket
+2023-03-26 21:44:16,905 - DEBUG - > Connection: Upgrade
+2023-03-26 21:44:16,905 - DEBUG - > Sec-WebSocket-Key: uDQf79IcY0EK46aRe146Dw==
+2023-03-26 21:44:16,905 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 21:44:16,905 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 21:44:16,905 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 21:44:16,905 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 21:44:16,905 - DEBUG - > User-Agent: Python/3.11 websockets/10.4
+2023-03-26 21:44:18,193 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 21:44:18,193 - DEBUG - < Connection: upgrade
+2023-03-26 21:44:18,193 - DEBUG - < Date: Sun, 26 Mar 2023 12:44:13 GMT
+2023-03-26 21:44:18,193 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 21:44:18,193 - DEBUG - < upgrade: websocket
+2023-03-26 21:44:18,193 - DEBUG - < sec-websocket-accept: F/682mVSxn1dNe2CyUclRneIqfY=
+2023-03-26 21:44:18,193 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 21:44:18,193 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 21:44:18,193 - DEBUG - < Via: 1.1 e649e91ecb78f4d44c5fc28ed185c6e0.cloudfront.net (CloudFront)
+2023-03-26 21:44:18,193 - DEBUG - < X-Amz-Cf-Pop: ICN57-P2
+2023-03-26 21:44:18,193 - DEBUG - < X-Amz-Cf-Id: WVcWHeNbjQ3uAs5grYHU4nkaRNLgHcCZ_4lC3YB3-S8ELphrp89odw==
+2023-03-26 21:44:18,193 - DEBUG - = connection is OPEN
+2023-03-26 21:44:18,206 - DEBUG - > TEXT '[2, "27735696-0899-4967-bbd6-f734e4284398", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 21:44:18,596 - DEBUG - < TEXT '[3, "27735696-0899-4967-bbd6-f734e4284398", {"s...13Z", "interval": 300}]' [123 bytes]
+2023-03-26 21:44:18,608 - DEBUG - > TEXT '[2, "27735696-0899-4967-bbd6-f734e4284398", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 21:44:18,813 - DEBUG - < TEXT '[3, "27735696-0899-4967-bbd6-f734e4284398", {}]' [47 bytes]
+2023-03-26 21:44:18,826 - DEBUG - > TEXT '[2, "27735696-0899-4967-bbd6-f734e4284398", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 21:44:19,096 - DEBUG - < TEXT '[3, "27735696-0899-4967-bbd6-f734e4284398", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 21:44:19,110 - DEBUG - > TEXT '[2, "f85da644-e14b-4cb3-b574-b7561937bd70", "St..."2023-03-26T21:44:08"}]' [169 bytes]
+2023-03-26 21:44:19,536 - DEBUG - < TEXT '[3, "f85da644-e14b-4cb3-b574-b7561937bd70", {"t..."status": "Accepted"}}]' [110 bytes]
+2023-03-26 21:44:19,572 - DEBUG - > TEXT '[2, "14fbd39f-4bd2-4139-bf25-b89e26055857", "St... "status": "Charging"}]' [131 bytes]
+2023-03-26 21:44:19,776 - DEBUG - < TEXT '[3, "14fbd39f-4bd2-4139-bf25-b89e26055857", {}]' [47 bytes]
+2023-03-26 21:44:19,811 - DEBUG - > TEXT '[2, "0c4c7348-55b6-4389-9c79-c1555051a17d", "Me...er", "unit": "Wh"}]}]}]' [258 bytes]
+2023-03-26 21:44:20,038 - DEBUG - < TEXT '[3, "0c4c7348-55b6-4389-9c79-c1555051a17d", {}]' [47 bytes]
+2023-03-26 21:44:20,073 - DEBUG - > TEXT '[2, "3ec6c7c3-2179-416b-abbd-a12d672f3b23", "St...sactionId": 120533443}]' [148 bytes]
+2023-03-26 21:44:20,375 - DEBUG - < TEXT '[3, "3ec6c7c3-2179-416b-abbd-a12d672f3b23", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 21:44:20,423 - DEBUG - > TEXT '[2, "5041a7af-d5a1-4143-901f-36ff1cf105cf", "St..."status": "Finishing"}]' [132 bytes]
+2023-03-26 21:44:20,617 - DEBUG - < TEXT '[3, "5041a7af-d5a1-4143-901f-36ff1cf105cf", {}]' [47 bytes]
+2023-03-26 21:44:20,661 - DEBUG - > TEXT '[2, "f55d577f-69d7-4cab-a54b-ba396ee65838", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 21:44:20,836 - DEBUG - < TEXT '[3, "f55d577f-69d7-4cab-a54b-ba396ee65838", {}]' [47 bytes]
+2023-03-26 21:44:20,873 - DEBUG - = connection is CLOSING
+2023-03-26 21:44:20,873 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 21:44:20,881 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 21:44:20,883 - DEBUG - = connection is CLOSED
+2023-03-26 22:28:25,551 - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<ChargerSim.on_closing() done, defined at E:\workspace\websocket\wss\main.py:321> exception=TclError('can\'t invoke "destroy" command: application has been destroyed')>
+Traceback (most recent call last):
+  File "E:\workspace\websocket\wss\main.py", line 328, in on_closing
+    await self.closeEvent()
+  File "E:\workspace\websocket\wss\main.py", line 183, in closeEvent
+    self.window.destroy()
+  File "C:\Program Files\Python311\Lib\tkinter\__init__.py", line 2368, in destroy
+    self.tk.call('destroy', self._w)
+_tkinter.TclError: can't invoke "destroy" command: application has been destroyed
