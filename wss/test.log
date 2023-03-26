@@ -1,0 +1,334 @@
+2023-03-26 10:18:01,946 - DEBUG - = connection is CONNECTING
+2023-03-26 10:18:02,047 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 10:18:02,048 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 10:18:02,048 - DEBUG - > Upgrade: websocket
+2023-03-26 10:18:02,048 - DEBUG - > Connection: Upgrade
+2023-03-26 10:18:02,048 - DEBUG - > Sec-WebSocket-Key: jY15dX1XX1jPSObKKRyhZA==
+2023-03-26 10:18:02,048 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 10:18:02,048 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 10:18:02,048 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 10:18:02,048 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 10:18:02,048 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 10:18:03,396 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 10:18:03,397 - DEBUG - < Connection: upgrade
+2023-03-26 10:18:03,397 - DEBUG - < Date: Sun, 26 Mar 2023 01:18:03 GMT
+2023-03-26 10:18:03,397 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 10:18:03,398 - DEBUG - < upgrade: websocket
+2023-03-26 10:18:03,398 - DEBUG - < sec-websocket-accept: jBksjUtkRneIbSxFNMtMU6iiTaY=
+2023-03-26 10:18:03,398 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 10:18:03,399 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 10:18:03,399 - DEBUG - < Via: 1.1 fbb22360028e181171037fd6d6a9e41c.cloudfront.net (CloudFront)
+2023-03-26 10:18:03,400 - DEBUG - < X-Amz-Cf-Pop: ICN54-C1
+2023-03-26 10:18:03,400 - DEBUG - < X-Amz-Cf-Id: nYGD3c9En4G0zpQXgdTPtfvZxoBWpyD-igDRkncL49GV36NZ6u8xqA==
+2023-03-26 10:18:03,407 - DEBUG - = connection is OPEN
+2023-03-26 10:18:03,454 - DEBUG - > TEXT '[2, "8152d138-d2c8-40bc-9f2e-5d74cdd04ba7", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 10:18:03,833 - DEBUG - < TEXT '[3, "8152d138-d2c8-40bc-9f2e-5d74cdd04ba7", {"s...03Z", "interval": 300}]' [123 bytes]
+2023-03-26 10:18:03,850 - DEBUG - > TEXT '[2, "8152d138-d2c8-40bc-9f2e-5d74cdd04ba7", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 10:18:04,033 - DEBUG - < TEXT '[3, "8152d138-d2c8-40bc-9f2e-5d74cdd04ba7", {}]' [47 bytes]
+2023-03-26 10:18:04,071 - DEBUG - > TEXT '[2, "8152d138-d2c8-40bc-9f2e-5d74cdd04ba7", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 10:18:05,153 - DEBUG - < TEXT '[3, "8152d138-d2c8-40bc-9f2e-5d74cdd04ba7", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 10:18:05,169 - DEBUG - > TEXT '[2, "f1f47fe7-24af-4df4-b4a2-c05c8f60cc3f", "St..."2023-03-26T10:17:47"}]' [169 bytes]
+2023-03-26 10:18:06,153 - DEBUG - < TEXT '[3, "f1f47fe7-24af-4df4-b4a2-c05c8f60cc3f", {"t..."status": "Accepted"}}]' [110 bytes]
+2023-03-26 10:18:06,221 - DEBUG - > TEXT '[2, "b560dca4-9eef-420b-92bb-095638c1a630", "St... "status": "Charging"}]' [131 bytes]
+2023-03-26 10:18:06,494 - DEBUG - < TEXT '[3, "b560dca4-9eef-420b-92bb-095638c1a630", {}]' [47 bytes]
+2023-03-26 10:18:06,560 - DEBUG - > TEXT '[2, "de7d962d-fcfe-4217-a714-e1d376483868", "Me...er", "unit": "Wh"}]}]}]' [258 bytes]
+2023-03-26 10:18:07,011 - DEBUG - < TEXT '[3, "de7d962d-fcfe-4217-a714-e1d376483868", {}]' [47 bytes]
+2023-03-26 10:18:07,051 - DEBUG - > TEXT '[2, "94cc2ee6-a780-40be-82ef-4881be8a8692", "St...sactionId": 120533436}]' [148 bytes]
+2023-03-26 10:18:07,435 - DEBUG - < TEXT '[3, "94cc2ee6-a780-40be-82ef-4881be8a8692", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 10:18:07,503 - DEBUG - > TEXT '[2, "8820e59f-1562-4b4b-aff1-28efdc8570f6", "St..."status": "Finishing"}]' [132 bytes]
+2023-03-26 10:18:07,693 - DEBUG - < TEXT '[3, "8820e59f-1562-4b4b-aff1-28efdc8570f6", {}]' [47 bytes]
+2023-03-26 10:18:07,746 - DEBUG - > TEXT '[2, "7fee18d9-832a-48f5-abe8-ebe16d8e5ec2", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 10:18:07,952 - DEBUG - < TEXT '[3, "7fee18d9-832a-48f5-abe8-ebe16d8e5ec2", {}]' [47 bytes]
+2023-03-26 10:18:08,000 - DEBUG - = connection is CLOSING
+2023-03-26 10:18:08,000 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 10:18:08,009 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 10:18:08,017 - DEBUG - = connection is CLOSED
+2023-03-26 10:18:08,019 - DEBUG - x closing TCP connection
+2023-03-26 12:04:17,554 - DEBUG - = connection is CONNECTING
+2023-03-26 12:04:17,603 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 12:04:17,603 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 12:04:17,603 - DEBUG - > Upgrade: websocket
+2023-03-26 12:04:17,603 - DEBUG - > Connection: Upgrade
+2023-03-26 12:04:17,603 - DEBUG - > Sec-WebSocket-Key: NQ2QAi6UuhBU0bMAvVfc6A==
+2023-03-26 12:04:17,604 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 12:04:17,604 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 12:04:17,604 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 12:04:17,604 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 12:04:17,604 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 12:04:18,908 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 12:04:18,909 - DEBUG - < Connection: upgrade
+2023-03-26 12:04:18,909 - DEBUG - < Date: Sun, 26 Mar 2023 03:04:18 GMT
+2023-03-26 12:04:18,909 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 12:04:18,910 - DEBUG - < upgrade: websocket
+2023-03-26 12:04:18,910 - DEBUG - < sec-websocket-accept: 0H3X6nY3N3ey+nY+IPODi//ZKfg=
+2023-03-26 12:04:18,910 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 12:04:18,910 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 12:04:18,910 - DEBUG - < Via: 1.1 1c2dddf38b53f960ce106f4047c232e4.cloudfront.net (CloudFront)
+2023-03-26 12:04:18,911 - DEBUG - < X-Amz-Cf-Pop: ICN57-P2
+2023-03-26 12:04:18,911 - DEBUG - < X-Amz-Cf-Id: X0KjKFrVBMAOY2ZY_K68gJhL-utbGceUVCXXPWvtx2-MOp-zmwCeJg==
+2023-03-26 12:04:18,911 - DEBUG - = connection is OPEN
+2023-03-26 12:04:18,945 - DEBUG - > TEXT '[2, "09c36204-ecca-44a2-9c4f-205cb3b7b5ba", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 12:04:19,346 - DEBUG - < TEXT '[3, "09c36204-ecca-44a2-9c4f-205cb3b7b5ba", {"s...18Z", "interval": 300}]' [123 bytes]
+2023-03-26 12:04:19,366 - DEBUG - > TEXT '[2, "09c36204-ecca-44a2-9c4f-205cb3b7b5ba", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 12:04:19,549 - DEBUG - < TEXT '[3, "09c36204-ecca-44a2-9c4f-205cb3b7b5ba", {}]' [47 bytes]
+2023-03-26 12:04:19,585 - DEBUG - > TEXT '[2, "09c36204-ecca-44a2-9c4f-205cb3b7b5ba", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 12:04:19,889 - DEBUG - < TEXT '[3, "09c36204-ecca-44a2-9c4f-205cb3b7b5ba", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 12:04:19,909 - DEBUG - > TEXT '[2, "28808e1f-a96b-4ae0-94a3-79d5c05bedad", "St..."2023-03-26T12:04:13"}]' [169 bytes]
+2023-03-26 12:04:20,956 - DEBUG - < TEXT '[3, "28808e1f-a96b-4ae0-94a3-79d5c05bedad", {"t..."status": "Accepted"}}]' [110 bytes]
+2023-03-26 12:04:21,020 - DEBUG - > TEXT '[2, "1abb83d0-c1ed-47a8-9e4b-df5d1688c763", "St... "status": "Charging"}]' [131 bytes]
+2023-03-26 12:04:21,207 - DEBUG - < TEXT '[3, "1abb83d0-c1ed-47a8-9e4b-df5d1688c763", {}]' [47 bytes]
+2023-03-26 12:04:21,242 - DEBUG - > TEXT '[2, "7a900983-f939-4181-a66e-1b7710d2b702", "Me...er", "unit": "Wh"}]}]}]' [258 bytes]
+2023-03-26 12:04:21,488 - DEBUG - < TEXT '[3, "7a900983-f939-4181-a66e-1b7710d2b702", {}]' [47 bytes]
+2023-03-26 12:04:21,532 - DEBUG - > TEXT '[2, "a1b78b10-8810-4e6d-9147-0892982b06de", "St...sactionId": 120533437}]' [148 bytes]
+2023-03-26 12:04:21,868 - DEBUG - < TEXT '[3, "a1b78b10-8810-4e6d-9147-0892982b06de", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 12:04:21,915 - DEBUG - > TEXT '[2, "51c02fe1-3a72-4a73-ab40-0ccde36c54f3", "St..."status": "Finishing"}]' [132 bytes]
+2023-03-26 12:04:22,087 - DEBUG - < TEXT '[3, "51c02fe1-3a72-4a73-ab40-0ccde36c54f3", {}]' [47 bytes]
+2023-03-26 12:04:22,133 - DEBUG - > TEXT '[2, "152682b9-b74b-4b4e-bcda-833248fdf052", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 12:04:22,308 - DEBUG - < TEXT '[3, "152682b9-b74b-4b4e-bcda-833248fdf052", {}]' [47 bytes]
+2023-03-26 12:04:22,368 - DEBUG - = connection is CLOSING
+2023-03-26 12:04:22,368 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 12:04:22,378 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 12:04:22,380 - DEBUG - = connection is CLOSED
+2023-03-26 12:04:22,382 - DEBUG - x closing TCP connection
+2023-03-26 12:09:59,554 - DEBUG - = connection is CONNECTING
+2023-03-26 12:09:59,603 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 12:09:59,604 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 12:09:59,604 - DEBUG - > Upgrade: websocket
+2023-03-26 12:09:59,604 - DEBUG - > Connection: Upgrade
+2023-03-26 12:09:59,604 - DEBUG - > Sec-WebSocket-Key: rUTSoL2XA7EWpBrXq0WWUg==
+2023-03-26 12:09:59,604 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 12:09:59,604 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 12:09:59,605 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 12:09:59,605 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 12:09:59,605 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 12:10:00,961 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 12:10:00,962 - DEBUG - < Connection: upgrade
+2023-03-26 12:10:00,962 - DEBUG - < Date: Sun, 26 Mar 2023 03:10:00 GMT
+2023-03-26 12:10:00,963 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 12:10:00,963 - DEBUG - < upgrade: websocket
+2023-03-26 12:10:00,964 - DEBUG - < sec-websocket-accept: CFtLQv2+VcKlFvA/SO9UsW3QgTw=
+2023-03-26 12:10:00,964 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 12:10:00,965 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 12:10:00,965 - DEBUG - < Via: 1.1 fbb22360028e181171037fd6d6a9e41c.cloudfront.net (CloudFront)
+2023-03-26 12:10:00,965 - DEBUG - < X-Amz-Cf-Pop: ICN54-C1
+2023-03-26 12:10:00,966 - DEBUG - < X-Amz-Cf-Id: 7PfRuURsdGY8yWVEij1tkxaXzCBpZslzZtGUAGd9kRCyUNYDLUe1wA==
+2023-03-26 12:10:00,967 - DEBUG - = connection is OPEN
+2023-03-26 12:10:00,996 - DEBUG - > TEXT '[2, "76ca1952-bdba-480d-ac04-6bcdb2c2fd4a", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 12:10:01,386 - DEBUG - < TEXT '[3, "76ca1952-bdba-480d-ac04-6bcdb2c2fd4a", {"s...00Z", "interval": 300}]' [123 bytes]
+2023-03-26 12:10:01,401 - DEBUG - > TEXT '[2, "76ca1952-bdba-480d-ac04-6bcdb2c2fd4a", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 12:10:01,586 - DEBUG - < TEXT '[3, "76ca1952-bdba-480d-ac04-6bcdb2c2fd4a", {}]' [47 bytes]
+2023-03-26 12:10:01,624 - DEBUG - > TEXT '[2, "76ca1952-bdba-480d-ac04-6bcdb2c2fd4a", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 12:10:01,908 - DEBUG - < TEXT '[3, "76ca1952-bdba-480d-ac04-6bcdb2c2fd4a", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 12:10:01,949 - DEBUG - = connection is CLOSING
+2023-03-26 12:10:01,950 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 12:10:01,958 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 12:10:01,961 - DEBUG - = connection is CLOSED
+2023-03-26 12:10:01,964 - DEBUG - x closing TCP connection
+2023-03-26 13:22:29,047 - DEBUG - = connection is CONNECTING
+2023-03-26 13:22:29,096 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 13:22:29,096 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 13:22:29,096 - DEBUG - > Upgrade: websocket
+2023-03-26 13:22:29,096 - DEBUG - > Connection: Upgrade
+2023-03-26 13:22:29,096 - DEBUG - > Sec-WebSocket-Key: LATvJh6o+VjR2EWIMsqxsA==
+2023-03-26 13:22:29,096 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 13:22:29,097 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 13:22:29,097 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 13:22:29,097 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 13:22:29,097 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 13:22:30,413 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 13:22:30,414 - DEBUG - < Connection: upgrade
+2023-03-26 13:22:30,414 - DEBUG - < Date: Sun, 26 Mar 2023 04:22:30 GMT
+2023-03-26 13:22:30,414 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 13:22:30,414 - DEBUG - < upgrade: websocket
+2023-03-26 13:22:30,415 - DEBUG - < sec-websocket-accept: PqqtVt2iIS6SSsUrk6tM1g4xRpY=
+2023-03-26 13:22:30,415 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 13:22:30,415 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 13:22:30,415 - DEBUG - < Via: 1.1 552df32c91dfdb5fe974f3002e2d7f26.cloudfront.net (CloudFront)
+2023-03-26 13:22:30,416 - DEBUG - < X-Amz-Cf-Pop: ICN54-C1
+2023-03-26 13:22:30,416 - DEBUG - < X-Amz-Cf-Id: FL6PSr0VGeoTxktrl-XjN1huVQ_TxRJfrmB4j2H9vhQj2ZsPsiK0XQ==
+2023-03-26 13:22:30,417 - DEBUG - = connection is OPEN
+2023-03-26 13:22:30,441 - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<ChargerSim.startEvent() done, defined at C:\workspace\websocket\wss\main.py:116> exception=AttributeError("'Charger' object has no attribute 'checkSchema'")>
+Traceback (most recent call last):
+  File "C:\workspace\websocket\wss\main.py", line 136, in startEvent
+    await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
+  File "C:\workspace\websocket\wss\Charger.py", line 373, in runcase
+    schema_check = self.checkSchema(f"{c[0]}", doc[3])
+AttributeError: 'Charger' object has no attribute 'checkSchema'
+2023-03-26 13:22:50,414 - DEBUG - % sending keepalive ping
+2023-03-26 13:22:50,415 - DEBUG - > PING f7 b6 0f 9d [binary, 4 bytes]
+2023-03-26 13:22:50,436 - DEBUG - < PONG f7 b6 0f 9d [binary, 4 bytes]
+2023-03-26 13:22:50,445 - DEBUG - % received keepalive pong
+2023-03-26 13:23:30,399 - DEBUG - = connection is CONNECTING
+2023-03-26 13:23:30,446 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 13:23:30,446 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 13:23:30,447 - DEBUG - > Upgrade: websocket
+2023-03-26 13:23:30,447 - DEBUG - > Connection: Upgrade
+2023-03-26 13:23:30,447 - DEBUG - > Sec-WebSocket-Key: IWtX9MPnTs145NF5D2e40g==
+2023-03-26 13:23:30,447 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 13:23:30,447 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 13:23:30,447 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 13:23:30,447 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 13:23:30,447 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 13:23:30,854 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 13:23:30,855 - DEBUG - < Connection: upgrade
+2023-03-26 13:23:30,855 - DEBUG - < Date: Sun, 26 Mar 2023 04:23:30 GMT
+2023-03-26 13:23:30,855 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 13:23:30,856 - DEBUG - < upgrade: websocket
+2023-03-26 13:23:30,856 - DEBUG - < sec-websocket-accept: 9KRe2ahletqdFWSzdKSyaSvXNA0=
+2023-03-26 13:23:30,856 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 13:23:30,857 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 13:23:30,857 - DEBUG - < Via: 1.1 c6ed8cd25e4ec3b0d1a9c72155758a62.cloudfront.net (CloudFront)
+2023-03-26 13:23:30,858 - DEBUG - < X-Amz-Cf-Pop: ICN57-P2
+2023-03-26 13:23:30,858 - DEBUG - < X-Amz-Cf-Id: PEJLE4gIZY3I1qsCElBvaEt3f65o5elPvfMa2oR7IYyepoV4H8Bkpg==
+2023-03-26 13:23:30,858 - DEBUG - = connection is OPEN
+2023-03-26 13:23:30,869 - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-2' coro=<ChargerSim.startEvent() done, defined at C:\workspace\websocket\wss\main.py:116> exception=AttributeError("'Charger' object has no attribute 'checkSchema'")>
+Traceback (most recent call last):
+  File "C:\workspace\websocket\wss\main.py", line 136, in startEvent
+    await self.charger.runcase(self.TC_selected if len(self.TC_selected.keys())>0 else self.TC)
+  File "C:\workspace\websocket\wss\Charger.py", line 373, in runcase
+    schema_check = self.checkSchema(f"{c[0]}", doc[3])
+AttributeError: 'Charger' object has no attribute 'checkSchema'
+2023-03-26 13:23:50,861 - DEBUG - % sending keepalive ping
+2023-03-26 13:23:50,861 - DEBUG - > PING ':*be' [text, 4 bytes]
+2023-03-26 13:23:50,872 - DEBUG - < PONG ':*be' [text, 4 bytes]
+2023-03-26 13:23:50,875 - DEBUG - % received keepalive pong
+2023-03-26 13:24:10,885 - DEBUG - % sending keepalive ping
+2023-03-26 13:24:10,890 - DEBUG - > PING 36 a3 d0 b2 [binary, 4 bytes]
+2023-03-26 13:24:10,901 - DEBUG - < PONG 36 a3 d0 b2 [binary, 4 bytes]
+2023-03-26 13:24:10,904 - DEBUG - % received keepalive pong
+2023-03-26 13:24:30,885 - DEBUG - % sending keepalive ping
+2023-03-26 13:24:30,886 - DEBUG - > PING c7 04 c4 83 [binary, 4 bytes]
+2023-03-26 13:24:30,901 - DEBUG - < PONG c7 04 c4 83 [binary, 4 bytes]
+2023-03-26 13:24:30,907 - DEBUG - % received keepalive pong
+2023-03-26 13:24:50,910 - DEBUG - % sending keepalive ping
+2023-03-26 13:24:50,911 - DEBUG - > PING bd 38 16 a4 [binary, 4 bytes]
+2023-03-26 13:24:50,924 - DEBUG - < PONG bd 38 16 a4 [binary, 4 bytes]
+2023-03-26 13:24:50,932 - DEBUG - % received keepalive pong
+2023-03-26 13:25:10,907 - DEBUG - % sending keepalive ping
+2023-03-26 13:25:10,908 - DEBUG - > PING 74 7f 04 ba [binary, 4 bytes]
+2023-03-26 13:25:10,918 - DEBUG - < PONG 74 7f 04 ba [binary, 4 bytes]
+2023-03-26 13:25:10,922 - DEBUG - % received keepalive pong
+2023-03-26 13:25:30,915 - DEBUG - % sending keepalive ping
+2023-03-26 13:25:30,916 - DEBUG - > PING 41 5a 39 81 [binary, 4 bytes]
+2023-03-26 13:25:30,929 - DEBUG - < PONG 41 5a 39 81 [binary, 4 bytes]
+2023-03-26 13:25:30,935 - DEBUG - % received keepalive pong
+2023-03-26 13:25:50,914 - DEBUG - % sending keepalive ping
+2023-03-26 13:25:50,914 - DEBUG - > PING 4f fa cc 5e [binary, 4 bytes]
+2023-03-26 13:25:50,925 - DEBUG - < PONG 4f fa cc 5e [binary, 4 bytes]
+2023-03-26 13:25:50,932 - DEBUG - % received keepalive pong
+2023-03-26 13:25:56,134 - DEBUG - = connection is CONNECTING
+2023-03-26 13:25:56,185 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 13:25:56,186 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 13:25:56,186 - DEBUG - > Upgrade: websocket
+2023-03-26 13:25:56,186 - DEBUG - > Connection: Upgrade
+2023-03-26 13:25:56,186 - DEBUG - > Sec-WebSocket-Key: hbzCyzZl1sqUezNCCcrFtA==
+2023-03-26 13:25:56,186 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 13:25:56,186 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 13:25:56,186 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 13:25:56,186 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 13:25:56,186 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 13:25:56,652 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 13:25:56,653 - DEBUG - < Connection: upgrade
+2023-03-26 13:25:56,653 - DEBUG - < Date: Sun, 26 Mar 2023 04:25:56 GMT
+2023-03-26 13:25:56,654 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 13:25:56,654 - DEBUG - < upgrade: websocket
+2023-03-26 13:25:56,654 - DEBUG - < sec-websocket-accept: rVZN7NpHbelTvCX7OOGHUI6zs2s=
+2023-03-26 13:25:56,655 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 13:25:56,655 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 13:25:56,656 - DEBUG - < Via: 1.1 fa5b7f0b1074f46400de8156956e7da8.cloudfront.net (CloudFront)
+2023-03-26 13:25:56,656 - DEBUG - < X-Amz-Cf-Pop: ICN54-C1
+2023-03-26 13:25:56,657 - DEBUG - < X-Amz-Cf-Id: yCE1xs2k385DjWtc0PCNUDd2iK424t6o4g9-pMOtFvcCojtCgnGLdg==
+2023-03-26 13:25:56,657 - DEBUG - = connection is OPEN
+2023-03-26 13:25:56,699 - DEBUG - > TEXT '[2, "a97b25f9-0419-4d65-8865-c55db278627a", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 13:25:57,083 - DEBUG - < TEXT '[3, "a97b25f9-0419-4d65-8865-c55db278627a", {"s...56Z", "interval": 300}]' [123 bytes]
+2023-03-26 13:25:57,103 - DEBUG - > TEXT '[2, "a97b25f9-0419-4d65-8865-c55db278627a", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 13:25:57,323 - DEBUG - < TEXT '[3, "a97b25f9-0419-4d65-8865-c55db278627a", {}]' [47 bytes]
+2023-03-26 13:25:57,357 - DEBUG - > TEXT '[2, "a97b25f9-0419-4d65-8865-c55db278627a", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 13:25:57,644 - DEBUG - < TEXT '[3, "a97b25f9-0419-4d65-8865-c55db278627a", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 13:25:57,659 - DEBUG - = connection is CLOSING
+2023-03-26 13:25:57,659 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 13:25:57,667 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 13:25:57,669 - DEBUG - = connection is CLOSED
+2023-03-26 13:25:57,671 - DEBUG - x closing TCP connection
+2023-03-26 13:36:42,408 - DEBUG - = connection is CONNECTING
+2023-03-26 13:36:42,463 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 13:36:42,463 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 13:36:42,463 - DEBUG - > Upgrade: websocket
+2023-03-26 13:36:42,463 - DEBUG - > Connection: Upgrade
+2023-03-26 13:36:42,463 - DEBUG - > Sec-WebSocket-Key: 7IdF5YaviICVKn3wohIMSQ==
+2023-03-26 13:36:42,463 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 13:36:42,463 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 13:36:42,464 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 13:36:42,464 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 13:36:42,464 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 13:36:43,693 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 13:36:43,693 - DEBUG - < Connection: upgrade
+2023-03-26 13:36:43,694 - DEBUG - < Date: Sun, 26 Mar 2023 04:36:43 GMT
+2023-03-26 13:36:43,694 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 13:36:43,695 - DEBUG - < upgrade: websocket
+2023-03-26 13:36:43,695 - DEBUG - < sec-websocket-accept: 11gyPBuH13nIcbHCfiET3rA0lh0=
+2023-03-26 13:36:43,695 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 13:36:43,696 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 13:36:43,696 - DEBUG - < Via: 1.1 552df32c91dfdb5fe974f3002e2d7f26.cloudfront.net (CloudFront)
+2023-03-26 13:36:43,696 - DEBUG - < X-Amz-Cf-Pop: ICN54-C1
+2023-03-26 13:36:43,697 - DEBUG - < X-Amz-Cf-Id: rpvSKXFZpRgi7dw-IQ4az0m70AOB6DWF831ljEpRvjHCt44T-SscFQ==
+2023-03-26 13:36:43,698 - DEBUG - = connection is OPEN
+2023-03-26 13:36:43,726 - DEBUG - > TEXT '[2, "743d5872-d928-44f5-8ca8-f4a8a1baa5f0", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 13:36:43,963 - DEBUG - < TEXT '[3, "743d5872-d928-44f5-8ca8-f4a8a1baa5f0", {"s...43Z", "interval": 300}]' [123 bytes]
+2023-03-26 13:36:43,981 - DEBUG - > TEXT '[2, "743d5872-d928-44f5-8ca8-f4a8a1baa5f0", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 13:36:44,173 - DEBUG - < TEXT '[3, "743d5872-d928-44f5-8ca8-f4a8a1baa5f0", {}]' [47 bytes]
+2023-03-26 13:36:44,196 - DEBUG - > TEXT '[2, "743d5872-d928-44f5-8ca8-f4a8a1baa5f0", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 13:36:44,469 - DEBUG - < TEXT '[3, "743d5872-d928-44f5-8ca8-f4a8a1baa5f0", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 13:36:44,497 - DEBUG - = connection is CLOSING
+2023-03-26 13:36:44,497 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 13:36:44,504 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 13:36:44,506 - DEBUG - = connection is CLOSED
+2023-03-26 13:36:44,509 - DEBUG - x closing TCP connection
+2023-03-26 13:40:01,648 - DEBUG - = connection is CONNECTING
+2023-03-26 13:40:01,703 - DEBUG - > GET /ocpp16/ELA007C01/EVSCA070007 HTTP/1.1
+2023-03-26 13:40:01,703 - DEBUG - > Host: ws.devevspcharger.uplus.co.kr
+2023-03-26 13:40:01,703 - DEBUG - > Upgrade: websocket
+2023-03-26 13:40:01,703 - DEBUG - > Connection: Upgrade
+2023-03-26 13:40:01,703 - DEBUG - > Sec-WebSocket-Key: rTPpJ4ijM/qB6m0f53DTTg==
+2023-03-26 13:40:01,703 - DEBUG - > Sec-WebSocket-Version: 13
+2023-03-26 13:40:01,703 - DEBUG - > Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
+2023-03-26 13:40:01,703 - DEBUG - > Sec-WebSocket-Protocol: ocpp1.6
+2023-03-26 13:40:01,703 - DEBUG - > Authorization: Basic RVZBUjpFVkFSTEdV
+2023-03-26 13:40:01,703 - DEBUG - > User-Agent: Python/3.10 websockets/10.4
+2023-03-26 13:40:02,271 - DEBUG - < HTTP/1.1 101 Switching Protocols
+2023-03-26 13:40:02,272 - DEBUG - < Connection: upgrade
+2023-03-26 13:40:02,272 - DEBUG - < Date: Sun, 26 Mar 2023 04:40:01 GMT
+2023-03-26 13:40:02,273 - DEBUG - < sec-websocket-protocol: ocpp1.6
+2023-03-26 13:40:02,273 - DEBUG - < upgrade: websocket
+2023-03-26 13:40:02,273 - DEBUG - < sec-websocket-accept: KqfkIcZEGp0HEdu2HDN1ss+fsSI=
+2023-03-26 13:40:02,274 - DEBUG - < sec-websocket-extensions: permessage-deflate
+2023-03-26 13:40:02,274 - DEBUG - < X-Cache: Miss from cloudfront
+2023-03-26 13:40:02,275 - DEBUG - < Via: 1.1 3191831ae41fb8010dc82317a4824110.cloudfront.net (CloudFront)
+2023-03-26 13:40:02,275 - DEBUG - < X-Amz-Cf-Pop: ICN54-C1
+2023-03-26 13:40:02,276 - DEBUG - < X-Amz-Cf-Id: n7v_lzdlbi3vy-ODupUq2HBwcEG9PwWfwNORu-X_bzrx92iPi-Qn1w==
+2023-03-26 13:40:02,277 - DEBUG - = connection is OPEN
+2023-03-26 13:40:02,307 - DEBUG - > TEXT '[2, "bde3d7bf-e87f-4ad6-b727-8e60be172b6e", "Bo...umber": "EVSCA070007"}]' [169 bytes]
+2023-03-26 13:40:02,730 - DEBUG - < TEXT '[3, "bde3d7bf-e87f-4ad6-b727-8e60be172b6e", {"s...02Z", "interval": 300}]' [123 bytes]
+2023-03-26 13:40:02,748 - DEBUG - > TEXT '[2, "bde3d7bf-e87f-4ad6-b727-8e60be172b6e", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 13:40:02,930 - DEBUG - < TEXT '[3, "bde3d7bf-e87f-4ad6-b727-8e60be172b6e", {}]' [47 bytes]
+2023-03-26 13:40:02,947 - DEBUG - > TEXT '[2, "bde3d7bf-e87f-4ad6-b727-8e60be172b6e", "Au...": "1031040000069641"}]' [87 bytes]
+2023-03-26 13:40:04,113 - DEBUG - < TEXT '[3, "bde3d7bf-e87f-4ad6-b727-8e60be172b6e", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 13:40:04,134 - DEBUG - > TEXT '[2, "673c18fe-46a9-4036-8ae4-219c859e3594", "St..."2023-03-26T13:39:55"}]' [169 bytes]
+2023-03-26 13:40:04,529 - DEBUG - < TEXT '[3, "673c18fe-46a9-4036-8ae4-219c859e3594", {"t..."status": "Accepted"}}]' [110 bytes]
+2023-03-26 13:40:04,571 - DEBUG - > TEXT '[2, "98f4e153-2683-462e-92b8-bf2bce3e09c3", "St... "status": "Charging"}]' [131 bytes]
+2023-03-26 13:40:04,748 - DEBUG - < TEXT '[3, "98f4e153-2683-462e-92b8-bf2bce3e09c3", {}]' [47 bytes]
+2023-03-26 13:40:04,785 - DEBUG - > TEXT '[2, "e6c67d66-b707-4be1-9a63-a935ec8f90f8", "Me...er", "unit": "Wh"}]}]}]' [258 bytes]
+2023-03-26 13:40:05,011 - DEBUG - < TEXT '[3, "e6c67d66-b707-4be1-9a63-a935ec8f90f8", {}]' [47 bytes]
+2023-03-26 13:40:05,074 - DEBUG - > TEXT '[2, "6e0c72be-3696-4354-84a4-d53a71a27e8e", "St...sactionId": 120533441}]' [148 bytes]
+2023-03-26 13:40:05,372 - DEBUG - < TEXT '[3, "6e0c72be-3696-4354-84a4-d53a71a27e8e", {"i..."status": "Accepted"}}]' [82 bytes]
+2023-03-26 13:40:05,422 - DEBUG - > TEXT '[2, "cc9e0c06-54a3-472f-b844-06a1a21b95bc", "St..."status": "Finishing"}]' [132 bytes]
+2023-03-26 13:40:05,610 - DEBUG - < TEXT '[3, "cc9e0c06-54a3-472f-b844-06a1a21b95bc", {}]' [47 bytes]
+2023-03-26 13:40:05,668 - DEBUG - > TEXT '[2, "8b0c4953-4500-48b0-a8e2-0bb1c9dc2e9a", "St..."status": "Available"}]' [132 bytes]
+2023-03-26 13:40:05,851 - DEBUG - < TEXT '[3, "8b0c4953-4500-48b0-a8e2-0bb1c9dc2e9a", {}]' [47 bytes]
+2023-03-26 13:40:05,888 - DEBUG - = connection is CLOSING
+2023-03-26 13:40:05,888 - DEBUG - > CLOSE 1000 (OK) [2 bytes]
+2023-03-26 13:40:05,895 - DEBUG - < CLOSE 1000 (OK) [2 bytes]
+2023-03-26 13:40:05,897 - DEBUG - = connection is CLOSED
+2023-03-26 13:40:05,900 - DEBUG - x closing TCP connection
