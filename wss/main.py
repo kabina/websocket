@@ -1,6 +1,6 @@
 import asyncio
 import tkinter
-import json, copy, pyperclip, uuid, logging
+import json, pyperclip, uuid, logging
 import tkinter as tk
 from Charger import Charger, TextHandler, Config
 from async_tkinter_loop import async_handler, async_mainloop
