@@ -434,15 +434,18 @@ class ChargerSim(tk.Tk):
         self.lb_mdl = Label(self.frameHat, text="모델ID")
         self.lb_cid = Label(self.frameHat, text="충전기CID(일반)", width=13)
         self.lb_rcid = Label(self.frameHat, text="충전기CID(예약)", width=13)
-        options= [
-            "ocpp16/websocket/standard",
-            "ocpp16/websocket/u+",
-            "ocpp20/websocket/standard",
-            "ocpp20/websocket/u+"
+        self.options= [
         ]
         self.testschem = StringVar(self.frameHat)
         self.testschem.set("ocpp16/websocket/standard")
-        self.en_protocol = OptionMenu(self.frameHat, self.testschem, *options)
+        try :
+            with open("./config.json", encoding="utf-8") as fd:
+                self.options = json.loads(fd.read())["testschem"]
+        except Exception as e:
+            messagebox.showerror(title="구성파일", message="구성파일(config.json) 오류, 파일 존재 및 내용을 확인 하세요")
+            self.window.destroy()
+
+        self.en_protocol = OptionMenu(self.frameHat, self.testschem, *self.options)
         self.en_sno = Entry(self.frameHat)
         self.en_rsno = Entry(self.frameHat)
         self.en_sno.insert(0, "EVSCA070007")

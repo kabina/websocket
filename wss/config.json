@@ -1,0 +1,8 @@
+{
+  "testschem": [
+              "ocpp16/websocket/standard",
+            "ocpp16/websocket/u+",
+            "ocpp20/websocket/standard",
+            "ocpp20/websocket/u+"
+  ]
+}
