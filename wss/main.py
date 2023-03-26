@@ -350,6 +350,8 @@ class ChargerSim(tk.Tk):
         self.txt_recv.insert(END, f" << Direct Msg {reqdoc} ...")
         response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
 
+    def testschemChanged(self, *args):
+        self.load_default_tc()
 
     def init_result(self):
         self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
@@ -446,6 +448,7 @@ class ChargerSim(tk.Tk):
             self.window.destroy()
 
         self.en_protocol = OptionMenu(self.frameHat, self.testschem, *self.options)
+        self.testschem.trace("w", self.testschemChanged)
         self.en_sno = Entry(self.frameHat)
         self.en_rsno = Entry(self.frameHat)
         self.en_sno.insert(0, "EVSCA070007")
@@ -463,7 +466,7 @@ class ChargerSim(tk.Tk):
         self.lb_url_comp = Label(self.frameTop, text=self.en_url.get()+"/"+self.en_mdl.get()+"/"+self.en_sno.get())
         self.lb_tc = Label(self.frameTop, text="Current TC", width=13)
         self.en_tc = Entry(self.frameTop)
-        self.en_log = Entry(self.frameTop)
+        self.en_log = Entry(self.frameTop, fg='red')
         self.tc_result_rdo_frame = Frame(self.frameTop)
         self.vtc_mode = IntVar()
         self.lb_tc_mode = Label(self.frameTop, text="TC결과상세")
