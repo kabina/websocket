@@ -8,7 +8,7 @@ from tkinter import *
 from tkinter import ttk, messagebox
 import tkinter.filedialog as filedialog
 from datetime import datetime, timedelta
-
+from ChargerUtil import tc_render
 class ChargerSim(tk.Tk):
 
     def __init__(self):
@@ -56,7 +56,8 @@ class ChargerSim(tk.Tk):
                         progressbar = self.progressbar,
                         curProgress=self.curProgress,
                         bt_direct_send=self.bt_direct_send,
-                        lb_mode_alert=self.lb_mode_alert
+                        lb_mode_alert=self.lb_mode_alert,
+                        testschem=self.testschem
                         )
     def tcload_callback(self):
         try :
@@ -81,7 +82,7 @@ class ChargerSim(tk.Tk):
             doc = event.widget.get("1.0", END)
             doc = json.loads(doc)
             key = list(doc.keys())[0]
-            with open("./schemas/" + key + ".json") as fd:
+            with open(f"./{self.testschem.get()}/schemas/" + key + ".json") as fd:
                 schema = fd.read().encode('utf-8')
 
             if str(key).endswith("Response") :
@@ -102,12 +103,12 @@ class ChargerSim(tk.Tk):
 
     def saveocpp(self):
         try :
-            with open("ocpp.json","w") as fd:
+            with open(f"./{self.testschem.get()}/ocpp.json","w") as fd:
                 fd.write(json.dumps(self.org_ocppdocs, indent=2))
             tkinter.messagebox.showinfo(title="성공", message="ocpp template이 저장 되었습니다.")
             self.bt_savetc['state'] = tk.DISABLED
             self.lb_save_notice['text'] = ""
-            with open("./ocpp.json", encoding='utf-8') as fd:
+            with open(f"./{self.testschem.get()}/ocpp.json", encoding='utf-8') as fd:
                 self.ocppdocs = json.loads(fd.read())
         except Exception as e:
             tkinter.messagebox.showerror(title="오류", message="ocpp template 저장 중 오류 발생")
@@ -168,7 +169,7 @@ class ChargerSim(tk.Tk):
 
         """변수값 치환 변환"""
         for k in self.ConfV.keys():
-            self.tc_render(ocpp[3], k)
+            tc_render(ocpp[3], k, self.ConfV[k])
 
         self.sendToClient(ocpp)
         self.en_status.delete(0, END)
@@ -232,16 +233,16 @@ class ChargerSim(tk.Tk):
 
         doc = copy.deepcopy(text_item)
         for k in self.ConfV.keys():
-            self.tc_render(doc, k)
+            tc_render(doc, k, self.ConfV[k])
 
         self.txt_tc_rendered.delete(1.0, END)
         self.txt_tc_rendered.insert(END, json.dumps(doc, indent=2))
 
         schemas = {}
         for msgid in text_item.keys():
-            with open(f"./schemas/{msgid}.json", encoding='utf-8') as fd:
+            with open(f"./{self.testschem.get()}/schemas/{msgid}.json", encoding='utf-8') as fd:
                 schemas['Request'] = json.loads(fd.read())
-            with open(f"./schemas/{msgid}Response.json", encoding='utf-8') as fd:
+            with open(f"./{self.testschem.get()}/schemas/{msgid}Response.json", encoding='utf-8') as fd:
                 schemas['Response'] = json.loads(fd.read())
         # schemas = schemas
         self.txt_schema.delete(1.0, END)
@@ -266,7 +267,7 @@ class ChargerSim(tk.Tk):
                                                                                        timespec='seconds')+'Z"'
                 else:
                     self.ConfRV[v] = self.ConfV[v].get()
-                self.tc_render(self.TC, v)
+                tc_render(self.TC, v, self.ConfV[v])
         except ValueError as err:
             vtmp = ''.join(c for c in self.ConfV[v].get() if c.isdigit())
             self.ConfV[v].delete(0,END)
@@ -275,11 +276,11 @@ class ChargerSim(tk.Tk):
         import copy
         try :
             self.en_log.delete(0, END)
-            with open("./props.json", encoding='utf-8') as fd:
+            with open(f"./{self.testschem.get()}/props.json", encoding='utf-8') as fd:
                 self.TC = json.loads(fd.read())
             self.TC_original = copy.deepcopy(self.TC)
             self.init_result()
-            with open("./ocpp.json", encoding='utf-8') as fd:
+            with open(f"./{self.testschem.get()}/ocpp.json", encoding='utf-8') as fd:
                 self.ocppdocs = json.loads(fd.read())
                 self.org_ocppdocs = copy.deepcopy(self.ocppdocs)
 
@@ -349,20 +350,6 @@ class ChargerSim(tk.Tk):
         self.txt_recv.insert(END, f" << Direct Msg {reqdoc} ...")
         response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
 
-    def tc_render(self, adict, k):
-        import datetime
-        if isinstance(adict, dict):
-            for key in adict.keys():
-                if adict[key] == k:
-                    try:
-                        adict[key] = self.ConfV[k]
-                    except ValueError:
-                        pass  # do nothing if the timestamp is already in the correct format
-                elif isinstance(adict[key], (dict, list)):
-                    self.tc_render(adict[key], k)
-        elif isinstance(adict, list):
-            for l in adict:
-                self.tc_render(l, k)
 
     def init_result(self):
         self.TC_result = ['Not Tested' for _ in range(len(self.TC.keys()))]
@@ -393,13 +380,15 @@ class ChargerSim(tk.Tk):
         self.frameBot = LabelFrame(self.tab1, text="Log Output", padx=5, pady=5)
         self.frameConfTop = LabelFrame(self.tab2, text="Basic Configuration", padx=5, pady=5)
         self.frameConfBot = LabelFrame(self.tab2, text="Custom Configuration", padx=5, pady=5)
+
         self.lst_cases = Listbox(self.frameTop, height=7, selectmode="extended", activestyle="none", exportselection=False)
         self.rdo_frame = Frame(self.frameTop)
         self.bt_frame = Frame(self.frameTop)
         self.bt_rframe = Frame(self.frameTop)
 
-        self.frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+
         self.frameHat.pack(side="top", fill="both", expand=True, padx=5, pady=5)
+        self.frameTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
         self.frameBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
         self.frameConfTop.pack(side="top", fill="both", expand=True, padx=5, pady=5)
         self.frameConfBot.pack(side="bottom", fill="both", expand=True, padx=5, pady=5)
@@ -446,12 +435,14 @@ class ChargerSim(tk.Tk):
         self.lb_cid = Label(self.frameHat, text="충전기CID(일반)", width=13)
         self.lb_rcid = Label(self.frameHat, text="충전기CID(예약)", width=13)
         options= [
-            "ocpp1.6(Websocket)",
-            "ocpp2.0(Websocket)"
+            "ocpp16/websocket/standard",
+            "ocpp16/websocket/u+",
+            "ocpp20/websocket/standard",
+            "ocpp20/websocket/u+"
         ]
-        self.clicked = StringVar(self.frameHat)
-        self.clicked.set("ocpp1.6(Websocket)")
-        self.en_protocol = OptionMenu(self.frameHat, self.clicked, *options)
+        self.testschem = StringVar(self.frameHat)
+        self.testschem.set("ocpp16/websocket/standard")
+        self.en_protocol = OptionMenu(self.frameHat, self.testschem, *options)
         self.en_sno = Entry(self.frameHat)
         self.en_rsno = Entry(self.frameHat)
         self.en_sno.insert(0, "EVSCA070007")

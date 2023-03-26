@@ -8,8 +8,10 @@ import jsonschema
 from colorlog import ColoredFormatter
 import urllib3
 from datetime import datetime
+import urllib3
 import tkinter as tk
 from tkinter import *
+from ChargerUtil import checkSchema, tc_render
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ch = logging.StreamHandler()
@@ -72,6 +74,7 @@ class Config():
         self.curProgress = kwargs["curProgress"]
         self.bt_direct_send = kwargs['bt_direct_send']
         self.lb_mode_alert = kwargs['lb_mode_alert']
+        self.testschem = kwargs['testschem']
 
 class Charger() :
     _transactionId: int
@@ -102,6 +105,7 @@ class Charger() :
         self.curProgress = config.curProgress
         self.bt_direct_send = config.bt_direct_send
         self.lb_mode_alert = config.lb_mode_alert
+        self.testschem = config.testschem
 
         self.arr_messageid = {
             "$uuid":str(uuid.uuid4()),
@@ -113,20 +117,20 @@ class Charger() :
             self.txt_recv.tag_config(attr, foreground=attr)
         self.txt_recv.insert(END, datetime.now().isoformat() +' '+ log + '\n', attr)
         self.txt_recv.see("insert")
-    def tc_render(self, adict, k):
-        import datetime
-        if isinstance(adict, dict):
-            for key in adict.keys():
-                if adict[key] == k:
-                    try:
-                        adict[key] = self.confV[k]
-                    except ValueError:
-                        pass  # do nothing if the timestamp is already in the correct format
-                elif isinstance(adict[key], (dict, list)):
-                    self.tc_render(adict[key], k)
-        elif isinstance(adict, list):
-            for l in adict:
-                self.tc_render(l, k)
+    # def tc_render(self, adict, k):
+    #     import datetime
+    #     if isinstance(adict, dict):
+    #         for key in adict.keys():
+    #             if adict[key] == k:
+    #                 try:
+    #                     adict[key] = self.confV[k]
+    #                 except ValueError:
+    #                     pass  # do nothing if the timestamp is already in the correct format
+    #             elif isinstance(adict[key], (dict, list)):
+    #                 self.tc_render(adict[key], k)
+    #     elif isinstance(adict, list):
+    #         for l in adict:
+    #             self.tc_render(l, k)
     def change_result(self, idx, res):
         self.result[idx] = res
 
@@ -154,6 +158,7 @@ class Charger() :
         self.curProgress = config.curProgress
         self.bt_direct_send = config.bt_direct_send
         self.lb_mode_alert = config.lb_mode_alert
+        self.testschem = config.testschem
 
     def change_list(self, case, text, attr=None, log=None):
         # idx = obj.get(0, "end").index(case.split()[0])
@@ -223,7 +228,7 @@ class Charger() :
 
     def convertDocs(self, doc):
         for k in self.confV.keys():
-            self.tc_render(doc, k)
+            tc_render(doc, k, self.confV[k])
 
     def convertSendDoc(self, ocpp) -> dict:
 
@@ -262,20 +267,6 @@ class Charger() :
             self.en_tr.insert(0,recv[2]["transactionId"])
         return recv
 
-    def checkSchema(self, original, target):
-        """
-        OCPP 규격과 다른지 체크, 다를 경우 False Return
-        :param original: 점검 대상 스키마 명
-        :param target: 점검 대상 Json 본체
-        :return: True : 규격 동일, False: 규격 다름
-        """
-
-        try :
-            schema = open("./schemas/"+original+".json").read().encode('utf-8')
-            jsonschema.validate(instance=target, schema=json.loads(schema))
-        except jsonschema.exceptions.ValidationError as e:
-            return False, e.message
-        return True,None
 
     async def callbackRequest(self, doc):
         rest_url = self.config.rest_url
@@ -360,7 +351,7 @@ class Charger() :
                         self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
 
                         break
-                    schema_check = self.checkSchema(c[1], recv[3])
+                    schema_check = checkSchema(c[1], recv[3], self.testschem.get())
                     if not schema_check[0]:
                         result = f" Fail ( Invalid testcase message from server, expected ({schema_check[1]})"
                         self.log(result, attr='red')
@@ -380,7 +371,7 @@ class Charger() :
                     self.txt_tc.delete(1.0, END)
                     self.txt_tc.insert(END, json.dumps(doc, indent=2))
 
-                    schema_check = self.checkSchema(f"{c[0]}", doc[3])
+                    schema_check = checkSchema(f"{c[0]}", doc[3], self.testschem.get())
                     if not schema_check[0] :
                         result = f" Fail ( Invalid testcase sending message from server. {schema_check[1]} )"
                         self.log(result , attr='red')
@@ -388,7 +379,7 @@ class Charger() :
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
                         break
                     recv = await self.sendDocs(doc)
-                    schema_check = self.checkSchema(f"{c[0]}Response", recv[2])
+                    schema_check = checkSchema(f"{c[0]}Response", recv[2], self.testschem.get())
                     if not schema_check[0]:
                         result = f" Fail ( Invalid testcase recv message from server. {schema_check[1]} )"
                         self.log(result , attr='red')
