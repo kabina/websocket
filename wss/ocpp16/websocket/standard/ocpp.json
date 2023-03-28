@@ -43,7 +43,7 @@
     "StartTransaction",
     {
       "connectorId": 1,
-      "idTag": "$idTag1",
+      "idTag": "$idTag2",
       "meterStart": 24000,
       "timestamp": "$ctime"
     }

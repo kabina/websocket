@@ -15,7 +15,13 @@ def checkSchema(original, target, schema):
     return True, None
 
 def tc_render(adict, k, value):
-    import datetime
+    """
+    dict내 value내에 특정 키워드'%keyword'를 찾아 이를 value로 대체
+    :param adict:
+    :param k: value로 대체하고자 하는는 $로 시작하는 값
+    :param value:
+    :return: rendering된 값 adict
+    """
     if isinstance(adict, dict):
         for key in adict.keys():
             if adict[key] == k:
@@ -28,3 +34,4 @@ def tc_render(adict, k, value):
     elif isinstance(adict, list):
         for l in adict:
             tc_render(l, k, value)
+    return adict

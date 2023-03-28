@@ -33,6 +33,11 @@ class ChargerSim(tk.Tk):
         pass
 
     def config_update(self):
+        self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
+                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': self.interval1,
+                      '$ctime+$interval2': self.interval2, '$crgr_mdl':self.en_mdl.get(), '$crgr_sno':self.en_sno.get(),
+                      '$crgr_rsno':self.en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':self.en_tr.get(), '$reservationId':self.en_reserve.get()}
+
         self.config = Config(wss_url=self.en_url.get(),
                         rest_url=self.en_rest_url.get(),
                         auth_token=self.en_token.get(),
@@ -59,6 +64,7 @@ class ChargerSim(tk.Tk):
                         lb_mode_alert=self.lb_mode_alert,
                         testschem=self.testschem
                         )
+
     def tcload_callback(self):
         try :
             self.en_log.delete(0, END)
@@ -78,7 +84,6 @@ class ChargerSim(tk.Tk):
     def checkocpp(self, event):
         import jsonschema
         key = None
-        print(self.vtxt_tc_changed.get())
         if self.vtxt_tc_changed.get() == 0 :
             return
         try:
@@ -165,7 +170,9 @@ class ChargerSim(tk.Tk):
         ocpp = copy.deepcopy(self.org_ocppdocs[self.lst_tc.get(item)[1]])
         """ {} 내부 """
 
-        lst_body = json.loads((self.lst_tc.get(item)[2]).replace("\'", "\""))
+        lst_body = {}
+        if len(self.lst_tc.get(item)) > 2:
+            lst_body = json.loads((self.lst_tc.get(item)[2]).replace("\'", "\""))
 
         """TC내 지정 전문 변환"""
         for c in lst_body.keys():
@@ -239,6 +246,7 @@ class ChargerSim(tk.Tk):
         for k in self.ConfV.keys():
             tc_render(doc, k, self.ConfV[k])
 
+        doc[list(doc.keys())[0]][1]=str(uuid.uuid4())
         self.txt_tc_rendered.delete(1.0, END)
         self.txt_tc_rendered.insert(END, json.dumps(doc, indent=2))
 
@@ -252,30 +260,7 @@ class ChargerSim(tk.Tk):
         self.txt_schema.delete(1.0, END)
         self.txt_schema.insert(END, json.dumps(schemas, indent=2))
 
-    def TC_update(self):
-        from datetime import timedelta
-        ctime = datetime.now().isoformat(sep='T', timespec='seconds')+'Z'
-        try :
-            for v in self.ConfV.keys():
-                #print(self.ConfV[v].get())
-                if v == "$ctime" :
 
-                    self.ConfRV[v] = ctime
-                elif v == "$ctime+$interval1" and len(self.ConfV[v].get()) > 0:
-                    self.ConfRV[v] = (datetime.now() +
-                                      timedelta(seconds=int(self.ConfV[v].get()))).isoformat(sep='T',
-                                                                                        timespec='seconds')+'Z'
-                elif v == "$ctime+$interval2" and len(self.ConfV[v].get()) > 0:
-                    self.ConfRV[v] = (datetime.now() +
-                                     timedelta(seconds=int(self.ConfV[v].get()))).isoformat(sep='T',
-                                                                                       timespec='seconds')+'Z"'
-                else:
-                    self.ConfRV[v] = self.ConfV[v].get()
-                tc_render(self.TC, v, self.ConfV[v])
-        except ValueError as err:
-            vtmp = ''.join(c for c in self.ConfV[v].get() if c.isdigit())
-            self.ConfV[v].delete(0,END)
-            self.ConfV[v].insert(0,vtmp)
     def load_default_tc(self):
         import copy
         try :
@@ -297,7 +282,7 @@ class ChargerSim(tk.Tk):
 
         self.init_result()
 
-    def ctrlc(event: tk.Event = None) -> str:
+    def ctrlc(self, event: tk.Event = None) -> str:
         try:
             text = event.widget.selection_get()
             pyperclip.copy(text)
@@ -313,14 +298,22 @@ class ChargerSim(tk.Tk):
         self.load_default_tc()
 
     def lst_cases_double_click(self,event):
+        """
+        TC CASE 더블클릭해서 선택 하면 txt_recv log영역내용에서 해당 tc를 찾아 .see 해줌
+        :param event:
+        :return:
+        """
         w = event.widget
         idx = w.curselection()[0]
-        #print(lst_cases.get(idx))
         line = self.txt_recv.search(self.lst_cases.get(idx).split()[0], "0.0", stopindex=END)
         if line :
             self.txt_recv.see(line)
+
     async def on_closing(self):
-        import sys
+        """
+        종료시 편집중 체크
+        :return:
+        """
         if self.bt_savetc['state'] == tk.NORMAL :
             if messagebox.askokcancel("종료", "편집 중인 전문이 있습니다. 종료 하시겠습니까?"):
                 await self.closeEvent()
@@ -361,9 +354,19 @@ class ChargerSim(tk.Tk):
         :return:
         """
         self.load_default_tc()
+        try :
+            with open("./config.json", encoding="utf-8") as fd:
+                attr = json.loads(fd.read())["properties"]["protocol"][self.testschem.get()]
+                for k in attr.keys() :
+                    self.properties[k].delete(0,END)
+                    self.properties[k].insert(0,attr[k])
+        except Exception as e:
+            print(e.with_traceback())
+            messagebox.showerror(title="구성파일", message="구성파일(config.json) 오류, 파일 존재 및 내용을 확인 하세요")
+            self.window.destroy()
+
 
     def txt_tc_changed(self, event):
-        print(self.vtxt_tc_changed.get())
         self.vtxt_tc_changed.set(1)
 
     def init_result(self):
@@ -386,7 +389,6 @@ class ChargerSim(tk.Tk):
         self.tabs.add(self.tab2, text="TC Configure")
 
         self.status = 1
-        self.ConfRV = {}
         self.vtxt_tc_changed = IntVar()
         self.window.title("EV Charger Simulator (nheo.an@gmail.com)")
         self.window.geometry("1160x990+500+100")
@@ -462,10 +464,11 @@ class ChargerSim(tk.Tk):
             self.window.destroy()
 
         self.en_protocol = OptionMenu(self.frameHat, self.testschem, *self.options)
+        self.en_protocol.configure(width=20)
         self.testschem.trace("w", self.testschemChanged)
         self.en_sno = Entry(self.frameHat)
         self.en_rsno = Entry(self.frameHat)
-        self.en_sno.insert(0, "EVSCA070007")
+        self.en_sno.insert(0, "EVSCA050001")
         self.en_cid = Entry(self.frameHat)
         self.en_rcid = Entry(self.frameHat)
         self.en_mdl = Entry(self.frameHat)
@@ -529,11 +532,17 @@ class ChargerSim(tk.Tk):
             seconds=int(self.en_timestamp3.get()))).isoformat(sep='T',
                                                          timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
 
-        self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
-                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': self.interval1,
-                      '$ctime+$interval2': self.interval2, '$crgr_mdl':self.en_mdl.get(), '$crgr_sno':self.en_sno.get(),
-                      '$crgr_rsno':self.en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':self.en_tr.get(), '$reservationId':self.en_reserve.get()}
-
+        self.properties = {
+        "crgr_sno": self.en_sno,
+        "crgr_rsno": self.en_rsno,
+        "crgr_cid": self.en_cid,
+        "crgr_rcid": self.en_rcid,
+        "crgr_mdl": self.en_mdl,
+        "auth_token": self.en_token,
+        "idTag1": self.en_idtag1,
+        "idTag2": self.en_idtag2,
+        "idTag3": self.en_idtag3
+        }
 
     def startApp(self):
 
@@ -562,10 +571,10 @@ class ChargerSim(tk.Tk):
         logger.addHandler(text_handler)
         self.status = 0
 
-        self.en_rsno.insert(0, "EVSCA070008")
-        self.en_cid.insert(0, "115001513031A")
-        self.en_rcid.insert(0, "115001513041A")
-        self.en_mdl.insert(0, "ELA007C01")
+        self.en_rsno.insert(0, "EVSCA050002")
+        self.en_cid.insert(0, "115001514011A")
+        self.en_rcid.insert(0, "115001514021A")
+        self.en_mdl.insert(0, "ELA007C05")
         self.en_token.insert(0, 'Basic RVZBUjpFVkFSTEdV')
         self.en_status.insert(0, 'Idle')
         self.lb_protocol.grid(row=0, column=0, sticky="we")
@@ -659,11 +668,11 @@ class ChargerSim(tk.Tk):
         self.interval2 = ((datetime.now() + timedelta(
             seconds=int(self.en_timestamp3.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
 
-        self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
-                      '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': self.interval1,
-                      '$ctime+$interval2': self.interval2, '$crgr_mdl': self.en_mdl.get(), '$crgr_sno': self.en_sno.get(),
-                      '$crgr_rsno': self.en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': self.en_tr.get(),
-                      '$reservationId': self.en_reserve.get()}
+        # self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
+        #               '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': self.interval1,
+        #               '$ctime+$interval2': self.interval2, '$crgr_mdl': self.en_mdl.get(), '$crgr_sno': self.en_sno.get(),
+        #               '$crgr_rsno': self.en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': self.en_tr.get(),
+        #               '$reservationId': self.en_reserve.get()}
 
         self.en_sno.bind('<KeyRelease>', self.wssRenew)
         self.en_mdl.bind('<KeyRelease>', self.wssRenew)

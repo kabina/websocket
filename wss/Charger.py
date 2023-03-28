@@ -116,7 +116,7 @@ class Charger() :
         if attr:
             self.txt_recv.tag_config(attr, foreground=attr)
         self.txt_recv.insert(END, datetime.now().isoformat() +' '+ log + '\n', attr)
-        self.txt_recv.see("insert")
+        #self.txt_recv.see("insert")
     # def tc_render(self, adict, k):
     #     import datetime
     #     if isinstance(adict, dict):
@@ -229,19 +229,25 @@ class Charger() :
     def convertDocs(self, doc):
         for k in self.confV.keys():
             tc_render(doc, k, self.confV[k])
+        return doc
 
     def convertSendDoc(self, ocpp) -> dict:
-
+        """
+        송신전문 변환
+         1. 전문 템플릿 변환
+         2. TC내 지정 전문 변환
+         3. MessageID처리
+        :param ocpp:
+        :return:
+        """
         doc = self.ocppdocs[ocpp[0]]
         """전문 템플릿 변환"""
-        self.convertDocs(doc[3])
-
+        doc[3] = self.convertDocs(doc[3])
         """TC내 지정 전문 변환"""
-        self.convertDocs(ocpp[1])
+        ocpp[1] = self.convertDocs(ocpp[1])
         import uuid
         for c in ocpp[1].keys():
             doc[3][c] = ocpp[1][c]
-
         """messageId 처리"""
         if doc[1] in self.arr_messageid.keys() :
             doc[1] = self.arr_messageid[doc[1]]
@@ -260,7 +266,7 @@ class Charger() :
         self.log(f' << {doc[2]}:{recv}', attr='blue')
         recv = json.loads(recv)
         # 후처리
-        if doc[2]=="StartTransaction" and recv[0] == 3:
+        if doc[2]=="StartTransaction" and recv[0] == 3 and "transactionId" in recv[2]:
             self._transactionId = recv[2]["transactionId"]
             self.confV["$transactionId"] = recv[2]["transactionId"]
             self.en_tr.delete(0,END)
@@ -275,6 +281,7 @@ class Charger() :
             doc[3]["transactionId"] = self._transactionId
         doc[1] = f'{str(uuid.uuid4())}'
         self.convertDocs(doc)
+        print(doc)
         reqdoc = {
             "crgrMid":self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
             "data": doc
@@ -303,7 +310,7 @@ class Charger() :
         step_count = 0
 
         self.status = 0
-        self.txt_recv.see(END)
+
         case_cnt = sum([len(cases[c]) for c in cases.keys()])
         for idx, case in enumerate(cases.keys()):
             inner_step_count = 0
@@ -331,6 +338,7 @@ class Charger() :
                 self.curProgress.set(step_count / case_cnt*100)
                 self.progressbar.update()
                 self.lst_tc.see(step_count)
+                self.txt_recv.see(END)
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
 
