@@ -33,6 +33,12 @@ class ChargerSim(tk.Tk):
         pass
 
     def config_update(self):
+        self.interval1 = ((datetime.now() + timedelta(
+            seconds=int(self.en_timestamp2.get()))).isoformat(sep='T',
+                                                         timespec='seconds') + 'Z') if self.en_timestamp2.get() else 0
+        self.interval2 = ((datetime.now() + timedelta(
+            seconds=int(self.en_timestamp3.get()))).isoformat(sep='T',
+                                                         timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
         self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
                       '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': self.interval1,
                       '$ctime+$interval2': self.interval2, '$crgr_mdl':self.en_mdl.get(), '$crgr_sno':self.en_sno.get(),
@@ -146,7 +152,7 @@ class ChargerSim(tk.Tk):
         self.en_status.delete(0, END)
         self.en_status.insert(0, "Test Finished")
         self.bt_conn['state'] = tk.DISABLED
-        tkinter.messagebox.showinfo(title="완료", message="TC 수행을 완료했습니다.")
+        #tkinter.messagebox.showinfo(title="완료", message="TC 수행을 완료했습니다.")
         self.txt_tc.delete("0.0", END)
         self.curProgress.set(0)
         self.progressbar.update()
@@ -525,23 +531,20 @@ class ChargerSim(tk.Tk):
         self.lb_save_notice = Label(self.bt_rframe)
         self.bt_savetc.config(state='disabled')
 
-        self.interval1 = ((datetime.now() + timedelta(
-            seconds=int(self.en_timestamp2.get()))).isoformat(sep='T',
-                                                         timespec='seconds') + 'Z') if self.en_timestamp2.get() else 0
-        self.interval2 = ((datetime.now() + timedelta(
-            seconds=int(self.en_timestamp3.get()))).isoformat(sep='T',
-                                                         timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
+
 
         self.properties = {
-        "crgr_sno": self.en_sno,
-        "crgr_rsno": self.en_rsno,
-        "crgr_cid": self.en_cid,
-        "crgr_rcid": self.en_rcid,
-        "crgr_mdl": self.en_mdl,
-        "auth_token": self.en_token,
-        "idTag1": self.en_idtag1,
-        "idTag2": self.en_idtag2,
-        "idTag3": self.en_idtag3
+            "crgr_sno": self.en_sno,
+            "crgr_rsno": self.en_rsno,
+            "crgr_cid": self.en_cid,
+            "crgr_rcid": self.en_rcid,
+            "crgr_mdl": self.en_mdl,
+            "auth_token": self.en_token,
+            "idTag1": self.en_idtag1,
+            "idTag2": self.en_idtag2,
+            "idTag3": self.en_idtag3,
+            "interval1": self.en_timestamp2,
+            "interval2": self.en_timestamp3
         }
 
     def startApp(self):
@@ -689,6 +692,9 @@ class ChargerSim(tk.Tk):
         self.set_time_label()
 
         self.load_default_tc()
+
+        """App최초 실행시 초기 값 config.json에서 불러와서 셋팅"""
+        self.testschemChanged()
         async_mainloop(self.window)
 
 def main(async_loop):

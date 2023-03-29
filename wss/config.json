@@ -15,7 +15,9 @@
         "crgr_mdl": "ELA007C05",
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
-        "idTag2": "1031040000069642"
+        "idTag2": "1031040000069642",
+        "interval1": 3600,
+        "interval2": 14400
       },
       "ocpp16/websocket/u+": {
         "crgr_sno": "EVSCA050007",
@@ -25,7 +27,9 @@
         "crgr_mdl": "ELA007C01",
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
-        "idTag2": "1031040000069642"
+        "idTag2": "1031040000069642",
+        "interval1": 3600,
+        "interval2": 14400
       }
     }
   }

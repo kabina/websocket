@@ -308,7 +308,7 @@
             }
          ],
         ["StatusNotification", {"status": "Charging"}],
-        ["StopTransaction", {"transactionId": "$transactionId", "meterStop": 29000,"reason": "Local", "timestamp": "2023-02-24T07:26:57.512Z"}],
+        ["StopTransaction", {"transactionId": "$transactionId", "meterStop": 29000,"reason": "Local", "timestamp": "$ctime"}],
         ["StatusNotification", {"status": "Finishing"}],
         ["StatusNotification", {"status": "Available"}]
     ],
@@ -415,7 +415,7 @@
         ["DiagnosticsStatusNotification", {"status": "UploadFailed"}]
     ],
     "TC_046_ReservationOfConnector-LocalStartTransaction": [
-        ["BootNotification", {"chargePointSerialNumber": "EVSCA070008"}],
+        ["BootNotification", {}],
         ["Wait", "ReserveNow", {
             "connectorId":1,
             "expiryDate":"$ctime+$interval2",
@@ -532,9 +532,9 @@
         ["Wait", "TriggerMessage", {"requestedMessage": "MeterValues"}],
         ["Reply", "TriggerMessage", {"status": "Accepted"}],
         ["MeterValues", {}],
-        ["Wait", "TriggerMessage", {"requestedMessage": "HeartBeat"}],
+        ["Wait", "TriggerMessage", {"requestedMessage": "Heartbeat"}],
         ["Reply", "TriggerMessage", {"status": "Accepted"}],
-        ["HeartBeat", {}],
+        ["Heartbeat", {}],
         ["Wait", "TriggerMessage", {"requestedMessage": "StatusNotification"}],
         ["Reply", "TriggerMessage", {"status": "Accepted"}],
         ["StatusNotification", {"status":"Available"}],
@@ -628,22 +628,26 @@
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],
         ["StartTransaction", {"idTag": "$idTag1"}],
         ["StatusNotification", {"status": "Charging"}],
-        ["Wait","SetChargingProfile", {
-                "chargingProfileId": 1,
-                "stackLevel": 1,
-                "chargingProfilePurpose": "TxDefaultProfile",
-                "chargingProfileKind": "Absolute",
-                "chargingSchedule": {
-                    "duration": 300,
+        ["Wait","SetChargingProfile",
+            {
+                "connectorId": 1,
+                "csChargingProfiles": {
+                    "chargingProfileId": 1,
+                    "stackLevel": 1,
+                    "chargingProfilePurpose": "TxDefaultProfile",
+                    "chargingProfileKind": "Absolute",
+                    "chargingSchedule": {
+                        "duration": 300,
                         "chargingRateUnit": "W",
                         "chargingSchedulePeriod": [
                             {
-                              "startPeriod": 0,
-                              "limit": 11000
+                                "startPeriod": 0,
+                                "limit": 11000
                             }
                         ]
                     }
                 }
+            }
             ],
         ["Reply", "SetChargingProfile",{"status": "Accepted"}],
         ["Wait", "ClearChargingProfile"],

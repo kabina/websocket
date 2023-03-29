@@ -5,8 +5,7 @@
     "BootNotification",
     {
       "chargePointModel": "$crgr_mdl",
-      "chargePointVendor": "EVAR",
-      "chargePointSerialNumber": "$crgr_sno"
+      "chargePointVendor": "EVAR"
     }
   ],
   "StatusNotification": [
@@ -19,15 +18,11 @@
       "status": "Available"
     }
   ],
-  "HeartBeat": [
+  "Heartbeat": [
     2,
     "19223201",
-    "DataTransfer",
-    {
-      "vendorId": "EVAR",
-      "messageId": "heartbeat",
-      "data": {}
-    }
+    "Heartbeat",
+    {}
   ],
   "Authorize": [
     2,
@@ -43,7 +38,7 @@
     "StartTransaction",
     {
       "connectorId": 1,
-      "idTag": "$idTag2",
+      "idTag": "$idTag1",
       "meterStart": 24000,
       "timestamp": "$ctime"
     }
@@ -54,7 +49,7 @@
     "MeterValues",
     {
       "connectorId": 1,
-      "transactionId": 120532006,
+      "transactionId": 120533559,
       "meterValue": [
         {
           "timestamp": "$ctime",
@@ -294,7 +289,7 @@
       "connectorId": 1,
       "expiryDate": "",
       "idTag": "$idTag1",
-      "reservationId": ""
+      "reservationId": "$reservationId"
     }
   ],
   "ReserveNowResponse": [
@@ -309,11 +304,11 @@
     "321312312",
     "CancelReservation",
     {
-      "reservationId": ""
+      "reservationId": "$reservationId"
     }
   ],
   "CancelReservationResponse": [
-    2,
+    3,
     "321312312",
     {
       "status": ""
@@ -328,7 +323,7 @@
     }
   ],
   "TriggerMessageResponse": [
-    2,
+    3,
     "321312312",
     {
       "status": "Accepted"
@@ -404,6 +399,16 @@
     "321312312",
     {
       "status": "Accepted"
+    }
+  ],
+    "DataTransfer": [
+    2,
+    "321312312",
+    "DataTransfer",
+    {
+      "vendorId": "ChungAng",
+      "messageId": "TEST",
+      "data": "Test Data"
     }
   ]
 }

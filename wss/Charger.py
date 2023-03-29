@@ -109,28 +109,14 @@ class Charger() :
 
         self.arr_messageid = {
             "$uuid":str(uuid.uuid4()),
-            "$timestamp":datetime.now().isoformat(sep="T", timespec="seconds")
+            "$timestamp":datetime.now().isoformat(sep="T", timespec="seconds")+'Z'
         }
     def log(self, log, attr=None):
         from datetime import datetime
         if attr:
             self.txt_recv.tag_config(attr, foreground=attr)
         self.txt_recv.insert(END, datetime.now().isoformat() +' '+ log + '\n', attr)
-        #self.txt_recv.see("insert")
-    # def tc_render(self, adict, k):
-    #     import datetime
-    #     if isinstance(adict, dict):
-    #         for key in adict.keys():
-    #             if adict[key] == k:
-    #                 try:
-    #                     adict[key] = self.confV[k]
-    #                 except ValueError:
-    #                     pass  # do nothing if the timestamp is already in the correct format
-    #             elif isinstance(adict[key], (dict, list)):
-    #                 self.tc_render(adict[key], k)
-    #     elif isinstance(adict, list):
-    #         for l in adict:
-    #             self.tc_render(l, k)
+
     def change_result(self, idx, res):
         self.result[idx] = res
 
@@ -161,7 +147,6 @@ class Charger() :
         self.testschem = config.testschem
 
     def change_list(self, case, text, attr=None, log=None):
-        # idx = obj.get(0, "end").index(case.split()[0])
         try:
             idx = self.lst_cases.get(0, "end").index(case.split()[0])
             self.lst_cases.delete(idx)
@@ -281,9 +266,8 @@ class Charger() :
             doc[3]["transactionId"] = self._transactionId
         doc[1] = f'{str(uuid.uuid4())}'
         self.convertDocs(doc)
-        print(doc)
         reqdoc = {
-            "crgrMid":self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
+            "crgrMid":self.config.rcid[:11] if "Reserv" in doc[2] else self.config.cid[:11],
             "data": doc
         }
 
@@ -312,6 +296,10 @@ class Charger() :
         self.status = 0
 
         case_cnt = sum([len(cases[c]) for c in cases.keys()])
+        cur_idx = self.lst_cases.curselection()
+        cur_idx = cur_idx[0] if cur_idx else 0
+        self.lst_cases.selection_clear(cur_idx+1,END)
+
         for idx, case in enumerate(cases.keys()):
             inner_step_count = 0
             await self.conn(case)
@@ -321,7 +309,10 @@ class Charger() :
             self.log(f"Testing... [{case}]", attr='green')
             self.log("+===========================================================", attr='green')
             change_text(self.en_tc, case)
-            self.lst_cases.see(idx)
+            self.lst_cases.see(cur_idx+idx)
+            if 0 != (cur_idx+idx):
+                self.lst_cases.selection_clear(0, cur_idx+idx)
+            self.lst_cases.select_set(cur_idx+idx)
 
             ilen = len(cases[case])
             for idx2, c in enumerate(cases[case]):
@@ -402,7 +393,6 @@ class Charger() :
                             scases.append(case)
                             self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
                             break
-
                 if idx2 == (ilen-1) :
                     self.change_list(case, f"{case} (Pass)", attr={'fg':'blue'}, log="Passed")
             step_count += (ilen-inner_step_count)
