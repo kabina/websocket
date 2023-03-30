@@ -243,7 +243,6 @@ class Charger() :
 
     async def sendDocs(self, doc):
 
-
         await self.ws.send(json.dumps(doc))
 
         self.log(f' >> {doc[2]}:{doc}', attr='blue')
@@ -288,8 +287,11 @@ class Charger() :
         return (True, None)
 
     async def runcase(self, cases):
-
-        import time
+        """
+        전문 처리, 선택된 TC셋을 받아 TC시나리오 내 개별 TC를 처리
+        :param cases: 전문 셋(TC별 전문)
+        :return: None
+        """
         scases = []
         step_count = 0
 

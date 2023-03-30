@@ -69,6 +69,11 @@
     ],
     "TC_011_1_RemoteStart_RemoteStartFirst": [
         ["BootNotification", {}],
+        ["Wait", "GetConfiguration", {"key": ["AuthorizeRemoteTxRequests"]}],
+        ["Reply", "GetConfiguration", {"configurationKey": [{"AuthorizeRemoteTxRequests": "300", "readonly": "true", "value": "300"}]}],
+        ["Wait", "ChangeConfiguration", {"key": "MeterValueSampleInterval","value": "300"}],
+        ["Reply", "ChangeConfiguration", {"status": "Accepted"}],
+        ["StatusNotification", {"status": "Available"}],
         ["Wait", "RemoteStartTransaction"],
         ["Reply", "RemoteStartTransaction"],
         ["Authorize", {"idTag": "$idTag1"},{"idTagInfo": {"status": "Accepted"}}],

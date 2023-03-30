@@ -18,19 +18,12 @@ class ChargerSim(tk.Tk):
         self.TC_result = []
         self.org_ocppdocs = {}
         self.ocppdocs = {}
-
         self.ConfV = {}
         self.config = None
         self.charger = None
         self.status = None
-
         self.initUI()
-        self.initFunc()
         self.startApp()
-
-
-    def initFunc(self):
-        pass
 
     def config_update(self):
         self.interval1 = ((datetime.now() + timedelta(
@@ -207,9 +200,10 @@ class ChargerSim(tk.Tk):
         self.frame_txt_tc.grid_remove()
         self.frame_txt_tc_rendered.grid(row=8, column=3, rowspan=3, sticky="we")
 
-    def wssRenew(self, event):
-        self.lb_url_comp.config(text=self.en_url.get()+'/'+self.en_mdl.get()+'/'+self.en_sno.get())
-
+    def wssRenew(self):
+        self.lb_url_comp.config(text=self.en_url.get()+'/'+self.testschem.get().split('/')[0]+'/'+self.en_mdl.get()+'/'+self.en_sno.get())
+        # self.en_url.insert(0,self.en_url.get()+'/'+self.testschem.get().split('/')[0])
+        # self.en_rest_url.insert(0, 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc')
 
     def onSelect(self, event):
         w = event.widget
@@ -352,7 +346,6 @@ class ChargerSim(tk.Tk):
         }
         self.txt_recv.insert(END, f" << Direct Msg {reqdoc} ...")
         response = requests.post(rest_url, headers=header, data=json.dumps(reqdoc), verify=False, timeout=5).json()
-
     def testschemChanged(self, *args):
         """
         테스트 프로토콜 변경시 TC 재 로드
@@ -362,10 +355,20 @@ class ChargerSim(tk.Tk):
         self.load_default_tc()
         try :
             with open("./config.json", encoding="utf-8") as fd:
-                attr = json.loads(fd.read())["properties"]["protocol"][self.testschem.get()]
-                for k in attr.keys() :
+                attr = json.loads(fd.read())
+                attr_urls = attr["urls"]
+                attr_protocol = attr["properties"]["protocol"][self.testschem.get()]
+
+                for k in attr_protocol.keys() :
                     self.properties[k].delete(0,END)
-                    self.properties[k].insert(0,attr[k])
+                    self.properties[k].insert(0,attr_protocol[k])
+
+                for k in attr_urls.keys() :
+                    self.urls[k].delete(0,END)
+                    self.urls[k].insert(0,attr_urls[k])
+                    if k=="wss":
+                        self.urls[k].insert(END,'/'+self.testschem.get().split('/')[0])
+                self.wssRenew()
         except Exception as e:
             print(e.with_traceback())
             messagebox.showerror(title="구성파일", message="구성파일(config.json) 오류, 파일 존재 및 내용을 확인 하세요")
@@ -448,8 +451,7 @@ class ChargerSim(tk.Tk):
 
         self.en_url = Entry(self.frameTop, width=60)
         self.en_rest_url = Entry(self.frameTop, width=60)
-        self.en_url.insert(0,"wss://ws.devevspcharger.uplus.co.kr/ocpp16")
-        self.en_rest_url.insert(0, 'https://8b434254zg.execute-api.ap-northeast-2.amazonaws.com/dev/ioc')
+
 
         self.lb_case = Label(self.frameTop, text="TC Body")
         self.lb_protocol = Label(self.frameHat, text="프로토콜")
@@ -545,6 +547,10 @@ class ChargerSim(tk.Tk):
             "idTag3": self.en_idtag3,
             "interval1": self.en_timestamp2,
             "interval2": self.en_timestamp3
+        }
+        self.urls = {
+            "rest": self.en_rest_url,
+            "wss": self.en_url
         }
 
     def startApp(self):
@@ -670,12 +676,6 @@ class ChargerSim(tk.Tk):
             seconds=int(self.en_timestamp2.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if self.en_timestamp2.get() else 0
         self.interval2 = ((datetime.now() + timedelta(
             seconds=int(self.en_timestamp3.get()))).isoformat(sep='T', timespec='seconds') + 'Z') if self.en_timestamp3.get() else 0
-
-        # self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
-        #               '$ctime': datetime.now().isoformat(sep='T', timespec='seconds'), '$ctime+$interval1': self.interval1,
-        #               '$ctime+$interval2': self.interval2, '$crgr_mdl': self.en_mdl.get(), '$crgr_sno': self.en_sno.get(),
-        #               '$crgr_rsno': self.en_rsno.get(), '$uuid': str(uuid.uuid4()), '$transactionId': self.en_tr.get(),
-        #               '$reservationId': self.en_reserve.get()}
 
         self.en_sno.bind('<KeyRelease>', self.wssRenew)
         self.en_mdl.bind('<KeyRelease>', self.wssRenew)
