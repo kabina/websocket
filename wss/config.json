@@ -5,7 +5,8 @@
             "ocpp16/websocket/u+(evar)",
             "ocpp16/websocket/u+(HV)",
             "ocpp20/websocket/standard",
-            "ocpp20/websocket/u+"
+            "ocpp20/websocket/u+",
+            "ocpp16/websocket/u+(multi)"
 
   ],
   "urls": {
@@ -23,18 +24,20 @@
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
         "idTag2": "1031040000069642",
+        "connector": "1",
         "interval1": 3600,
         "interval2": 14400
       },
       "ocpp16/websocket/u+": {
-        "crgr_sno": "EVSCA050007",
-        "crgr_rsno": "EVSCA050008",
-        "crgr_cid": "115001514031A",
-        "crgr_rcid": "115001514041A",
-        "crgr_mdl": "ELA007C01",
+        "crgr_sno": "ELC050C-001-001",
+        "crgr_rsno": "ELC050C-001-001",
+        "crgr_cid": "115001513071A",
+        "crgr_rcid": "115001513071A",
+        "crgr_mdl": "ELC050C-001",
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
         "idTag2": "1031040000069642",
+        "connector": "1",
         "interval1": 3600,
         "interval2": 14400
       },
@@ -47,6 +50,7 @@
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
         "idTag2": "1031040000069642",
+        "connector": "1",
         "interval1": 3600,
         "interval2": 14400
       },
@@ -59,6 +63,20 @@
         "auth_token": "Basic SkM6SkNMR1U=",
         "idTag1": "1031040000069641",
         "idTag2": "1031040000069642",
+        "connector": "1",
+        "interval1": 3600,
+        "interval2": 14400
+      },
+                 "ocpp16/websocket/u+(multi)": {
+        "crgr_sno": "ELC100C-003-001",
+        "crgr_rsno": "ELC100C-003-001",
+        "crgr_cid": "115001513153C",
+        "crgr_rcid": "115001513153C",
+        "crgr_mdl": "ELC100C-003",
+        "auth_token": "Basic RVZBUjpFVkFSTEdV",
+        "idTag1": "1031040000069641",
+        "idTag2": "1031040000069642",
+        "connector": "3",
         "interval1": 3600,
         "interval2": 14400
       }

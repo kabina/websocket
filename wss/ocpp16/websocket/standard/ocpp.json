@@ -13,7 +13,7 @@
     "$uuid",
     "StatusNotification",
     {
-      "connectorId": 1,
+      "connectorId": $connector,
       "errorCode": "NoError",
       "status": "Available"
     }
@@ -37,7 +37,7 @@
     "167722361",
     "StartTransaction",
     {
-      "connectorId": 1,
+      "connectorId": 3,
       "idTag": "$idTag1",
       "meterStart": 24000,
       "timestamp": "$ctime"
@@ -401,7 +401,7 @@
       "status": "Accepted"
     }
   ],
-    "DataTransfer": [
+  "DataTransfer": [
     2,
     "321312312",
     "DataTransfer",

@@ -4,7 +4,6 @@ import logging
 import websockets
 import json
 import uuid
-import jsonschema
 from colorlog import ColoredFormatter
 import urllib3
 from datetime import datetime
@@ -151,15 +150,16 @@ class Charger() :
             idx = self.lst_cases.get(0, "end").index(case.split()[0])
             self.lst_cases.delete(idx)
             self.lst_cases.insert(idx, text)
+            fg = attr['fg'] if attr else 'blue'
             if attr:
                 self.lst_cases.itemconfig(idx, attr)
             if log:
                 self.result[idx] = log
+            self.log(log, attr=attr['fg'])
         except Exception as e:
             pass
 
     async def conn(self, case):
-
         if len(case.split('_')) > 1 and 46 <= int(case.split('_')[1]) <= 53 :
             wss_url = f'{self.config.wss_url}/{self.mdl}/{self.config.rsno}'
         else:
@@ -212,9 +212,10 @@ class Charger() :
         self.log(f" << Check Response for Reply |{noused}|")
 
     def convertDocs(self, doc):
+        doc = json.dumps(doc)
         for k in self.confV.keys():
-            tc_render(doc, k, self.confV[k])
-        return doc
+            doc.replace(k, self.confV[k])
+        return json.loads(doc)
 
     def convertSendDoc(self, ocpp) -> dict:
         """
@@ -225,7 +226,7 @@ class Charger() :
         :param ocpp:
         :return:
         """
-        doc = self.ocppdocs[ocpp[0]]
+        doc = json.loads(self.ocppdocs)[ocpp[0]]
         """전문 템플릿 변환"""
         doc[3] = self.convertDocs(doc[3])
         """TC내 지정 전문 변환"""
@@ -348,14 +349,12 @@ class Charger() :
                     if recv == None :
                         scases.append(case)
                         result = " None response from server. test case failed"
-                        self.log(result , attr='red')
                         self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
 
                         break
                     schema_check = checkSchema(c[1], recv[3], self.testschem.get())
                     if not schema_check[0]:
                         result = f" Fail ( Invalid testcase message from server, expected ({schema_check[1]})"
-                        self.log(result, attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
                         break
@@ -375,7 +374,6 @@ class Charger() :
                     schema_check = checkSchema(f"{c[0]}", doc[3], self.testschem.get())
                     if not schema_check[0] :
                         result = f" Fail ( Invalid testcase sending message from server. {schema_check[1]} )"
-                        self.log(result , attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
                         break
@@ -383,7 +381,6 @@ class Charger() :
                     schema_check = checkSchema(f"{c[0]}Response", recv[2], self.testschem.get())
                     if not schema_check[0]:
                         result = f" Fail ( Invalid testcase recv message from server. {schema_check[1]} )"
-                        self.log(result , attr='red')
                         scases.append(case)
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
                         break
@@ -391,7 +388,6 @@ class Charger() :
                         chk = self.recv_check(recv[2], c[2])
                         if not chk[0]:
                             result = f" Fail ( Not expected response from server(expected: {chk[1]}. ))"
-                            self.log(result, attr='red')
                             scases.append(case)
                             self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
                             break

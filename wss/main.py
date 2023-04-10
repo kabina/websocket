@@ -16,8 +16,8 @@ class ChargerSim(tk.Tk):
         self.TC_original = None
         self.TC_selected = {}
         self.TC_result = []
-        self.org_ocppdocs = {}
-        self.ocppdocs = {}
+        self.org_ocppdocs = None
+        self.ocppdocs = None
         self.ConfV = {}
         self.config = None
         self.charger = None
@@ -35,7 +35,7 @@ class ChargerSim(tk.Tk):
         self.ConfV = {'$idTag1': self.en_idtag1.get(), '$idTag2': self.en_idtag2.get(), '$idTag3': self.en_idtag3.get(),'$idTag': self.en_idtag1.get(),
                       '$ctime': datetime.now().isoformat(sep='T', timespec='seconds')+'Z', '$ctime+$interval1': self.interval1,
                       '$ctime+$interval2': self.interval2, '$crgr_mdl':self.en_mdl.get(), '$crgr_sno':self.en_sno.get(),
-                      '$crgr_rsno':self.en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':self.en_tr.get(), '$reservationId':self.en_reserve.get()}
+                      '$crgr_rsno':self.en_rsno.get(), '$uuid':str(uuid.uuid4()), '$transactionId':self.en_tr.get(), '$reservationId':self.en_reserve.get(), '$connector':self.en_connector.get()}
 
         self.config = Config(wss_url=self.en_url.get(),
                         rest_url=self.en_rest_url.get(),
@@ -229,14 +229,18 @@ class ChargerSim(tk.Tk):
         items= [ w.get(s) for s in w.curselection() ]
         if not items :
             return
-
         text_item = {}
+        org_ocppdocs_converted = copy.deepcopy(self.org_ocppdocs)
+
+        for k in self.ConfV.keys():
+            if self.ConfV[k] :
+                org_ocppdocs_converted = org_ocppdocs_converted.replace(k, self.ConfV[k])
         for item in items :
             if item[0]  in ('Wait', 'Reply') :
-                text_item[item[1]]=self.org_ocppdocs[item[1]]
+                text_item[item[1]]=json.loads(org_ocppdocs_converted)[item[1]]
                 self.bt_direct_send['state'] = tk.NORMAL
             else :
-                text_item[item[0]]=self.org_ocppdocs[item[0]]
+                text_item[item[0]]=json.loads(org_ocppdocs_converted)[item[0]]
                 self.bt_direct_send['state'] = tk.DISABLED
 
         self.txt_tc.delete(1.0, END)
@@ -270,7 +274,10 @@ class ChargerSim(tk.Tk):
             self.TC_original = copy.deepcopy(self.TC)
             self.init_result()
             with open(f"./{self.testschem.get()}/ocpp.json", encoding='utf-8') as fd:
-                self.ocppdocs = json.loads(fd.read())
+                self.ocppdocs = fd.read()
+                # for k in self.ConfV.keys():
+                #     self.ocppdocs.replace(k, self.ConfV[k])
+                # self.ocppdocs = json.loads(self.ocppdocs)
                 self.org_ocppdocs = copy.deepcopy(self.ocppdocs)
 
         except Exception as err:
@@ -486,6 +493,8 @@ class ChargerSim(tk.Tk):
         self.en_token = Entry(self.frameHat)
         self.lb_reserve = Label(self.frameHat, text="reserveId", width=5)
         self.en_reserve = Entry(self.frameHat)
+        self.lb_connector = Label(self.frameHat, text="connector", width=5)
+        self.en_connector = Entry(self.frameHat)
         self.lb_status = Label(self.frameHat, text="Status", width=5)
         self.en_status = Entry(self.frameHat)
         self.lb_url_comp = Label(self.frameTop, text=self.en_url.get()+"/"+self.en_mdl.get()+"/"+self.en_sno.get())
@@ -545,6 +554,7 @@ class ChargerSim(tk.Tk):
             "idTag1": self.en_idtag1,
             "idTag2": self.en_idtag2,
             "idTag3": self.en_idtag3,
+            "connector": self.en_connector,
             "interval1": self.en_timestamp2,
             "interval2": self.en_timestamp3
         }
@@ -606,6 +616,8 @@ class ChargerSim(tk.Tk):
         self.en_reserve.grid(row=1, column=7, sticky="we")
         self.lb_status.grid(row=1, column=8, sticky="we")
         self.en_status.grid(row=1, column=9, sticky="we")
+        self.lb_connector.grid(row=2, column=0, sticky="we")
+        self.en_connector.grid(row=2, column=1, sticky="we")
         self.vtc_mode1.configure(command=self.show_txt_tc)
         self.vtc_mode2.configure(command=self.show_txt_tc_rendered)
         self.lb_url.grid(row=3, column=0, sticky="we")
@@ -691,10 +703,13 @@ class ChargerSim(tk.Tk):
         self.window.protocol("WM_DELETE_WINDOW", async_handler(self.on_closing))
         self.set_time_label()
 
-        self.load_default_tc()
 
         """App최초 실행시 초기 값 config.json에서 불러와서 셋팅"""
         self.testschemChanged()
+
+        self.load_default_tc()
+        self.config_update()
+
         async_mainloop(self.window)
 
 def main(async_loop):
