@@ -166,7 +166,7 @@ class ChargerSim(tk.Tk):
         self.en_status.insert(0, "Running")
         item = self.lst_tc.curselection()[0]
         """ 템플릿 전문 [2, 3213123, ... """
-        ocpp = copy.deepcopy(self.org_ocppdocs[self.lst_tc.get(item)[1]])
+        ocpp = copy.deepcopy(json.loads(self.org_ocppdocs)[self.lst_tc.get(item)[1]])
         """ {} 내부 """
 
         lst_body = {}
@@ -230,17 +230,17 @@ class ChargerSim(tk.Tk):
         if not items :
             return
         text_item = {}
-        org_ocppdocs_converted = copy.deepcopy(self.org_ocppdocs)
+        # org_ocppdocs_converted = copy.deepcopy(self.org_ocppdocs)
 
-        for k in self.ConfV.keys():
-            if self.ConfV[k] :
-                org_ocppdocs_converted = org_ocppdocs_converted.replace(k, self.ConfV[k])
+        # for k in self.ConfV.keys():
+        #     if self.ConfV[k] :
+        #         org_ocppdocs_converted = org_ocppdocs_converted.replace(k, self.ConfV[k])
         for item in items :
             if item[0]  in ('Wait', 'Reply') :
-                text_item[item[1]]=json.loads(org_ocppdocs_converted)[item[1]]
+                text_item[item[1]]=json.loads(self.org_ocppdocs)[item[1]]
                 self.bt_direct_send['state'] = tk.NORMAL
             else :
-                text_item[item[0]]=json.loads(org_ocppdocs_converted)[item[0]]
+                text_item[item[0]]=json.loads(self.org_ocppdocs)[item[0]]
                 self.bt_direct_send['state'] = tk.DISABLED
 
         self.txt_tc.delete(1.0, END)
@@ -272,6 +272,7 @@ class ChargerSim(tk.Tk):
             with open(f"./{self.testschem.get()}/props.json", encoding='utf-8') as fd:
                 self.TC = json.loads(fd.read())
             self.TC_original = copy.deepcopy(self.TC)
+
             self.init_result()
             with open(f"./{self.testschem.get()}/ocpp.json", encoding='utf-8') as fd:
                 self.ocppdocs = fd.read()
@@ -285,6 +286,7 @@ class ChargerSim(tk.Tk):
             return
         self.lst_cases.delete(0,END)
         for item in self.TC.keys():
+            print(item)
             self.lst_cases.insert(END, item )
 
         self.init_result()
@@ -343,7 +345,7 @@ class ChargerSim(tk.Tk):
             doc[3]["transactionId"] = int(self.en_tr.get())
         doc[1] = f'{str(uuid.uuid4())}'
         reqdoc = {
-            "crgrMid": self.config.rcid[:11] if doc[2].startswith("Reserve") else self.config.cid[:11],
+            "crgrMid":self.config.rcid[:11] if "Reserv" in doc[2] else self.config.cid[:11],
             "data": doc
         }
         header = {

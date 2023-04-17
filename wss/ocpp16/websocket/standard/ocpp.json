@@ -13,7 +13,7 @@
     "$uuid",
     "StatusNotification",
     {
-      "connectorId": $connector,
+      "connectorId": "$connector",
       "errorCode": "NoError",
       "status": "Available"
     }
@@ -37,7 +37,7 @@
     "167722361",
     "StartTransaction",
     {
-      "connectorId": 3,
+      "connectorId": 1,
       "idTag": "$idTag1",
       "meterStart": 24000,
       "timestamp": "$ctime"
@@ -71,7 +71,7 @@
     {
       "meterStop": 29000,
       "timestamp": "$ctime",
-      "transactionId": 120532006
+      "transactionId": 120533844
     }
   ],
   "ClearCache": [
@@ -409,6 +409,13 @@
       "vendorId": "ChungAng",
       "messageId": "TEST",
       "data": "Test Data"
+    }
+  ],
+    "DataTransferResponse": [
+    3,
+    "321312312",
+    {
+      "status": "Accepted"
     }
   ]
 }

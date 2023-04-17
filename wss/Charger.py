@@ -10,6 +10,7 @@ from datetime import datetime
 import urllib3
 import tkinter as tk
 from tkinter import *
+import timeit
 from ChargerUtil import checkSchema, tc_render
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -212,10 +213,9 @@ class Charger() :
         self.log(f" << Check Response for Reply |{noused}|")
 
     def convertDocs(self, doc):
-        doc = json.dumps(doc)
-        for k in self.confV.keys():
-            doc.replace(k, self.confV[k])
-        return json.loads(doc)
+        for k in self.confV:
+            tc_render(doc, k, self.confV[k])
+        return doc
 
     def convertSendDoc(self, ocpp) -> dict:
         """
@@ -318,7 +318,9 @@ class Charger() :
             self.lst_cases.select_set(cur_idx+idx)
 
             ilen = len(cases[case])
+            elapsed_time_most = 0
             for idx2, c in enumerate(cases[case]):
+
                 """일반TC에서는 전문 Client직접접속 버튼 해제"""
                 self.bt_direct_send['state'] = tk.DISABLED
                 self.lb_mode_alert['text'] =""
@@ -333,6 +335,7 @@ class Charger() :
                 self.progressbar.update()
                 self.lst_tc.see(step_count)
                 self.txt_recv.see(END)
+                start_time = timeit.default_timer()
                 if c[0] == "Wait" :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
 
@@ -359,15 +362,17 @@ class Charger() :
                         self.change_list(case, f"{case} (Fail)", attr={'fg':'red'}, log=result)
                         break
                     else:
-                        senddoc = self.ocppdocs[f"{recv[2]}Response"]
+                        senddoc = json.loads(self.ocppdocs)[f"{recv[2]}Response"]
                         senddoc[1] = recv[1]
                         if len(c)>2 :
                             for d in c[2].keys() :
                                 senddoc[2][d]=c[2][d]
                         await self.sendReply(senddoc)
                 else :
+                    print(c)
 
                     doc = self.convertSendDoc(c)
+
                     self.txt_tc.delete(1.0, END)
                     self.txt_tc.insert(END, json.dumps(doc, indent=2))
 
@@ -391,8 +396,12 @@ class Charger() :
                             scases.append(case)
                             self.change_list(case, f"{case} (Fail)", attr={'fg': 'red'}, log=result)
                             break
+                elapsed_time = timeit.default_timer() - start_time
+                if elapsed_time > elapsed_time_most :
+                    elapsed_time_most = elapsed_time
+
                 if idx2 == (ilen-1) :
-                    self.change_list(case, f"{case} (Pass)", attr={'fg':'blue'}, log="Passed")
+                    self.change_list(case, f"{case} (Pass, {elapsed_time_most})", attr={'fg':'blue'}, log="Passed")
             step_count += (ilen-inner_step_count)
             """ Progress bar Update(TC별 오류로 미처리된 STEP처리"""
             self.curProgress.set(step_count / case_cnt * 100)

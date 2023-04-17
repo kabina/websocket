@@ -29,11 +29,11 @@
         "interval2": 14400
       },
       "ocpp16/websocket/u+": {
-        "crgr_sno": "ELC050C-001-001",
-        "crgr_rsno": "ELC050C-001-001",
-        "crgr_cid": "115001513071A",
-        "crgr_rcid": "115001513071A",
-        "crgr_mdl": "ELC050C-001",
+        "crgr_sno": "EVSCA070007",
+        "crgr_rsno": "EVSCA070007",
+        "crgr_cid": "115001513031A",
+        "crgr_rcid": "115001513031A",
+        "crgr_mdl": "ELA007C01",
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
         "idTag2": "1031040000069642",

@@ -50,14 +50,14 @@ def tc_render(adict, k, value):
     :return: rendering된 값 adict
     """
     typeconv = {
-        "reservationId":int
+        "reservationId":int,
+        "connectorId":int
     }
     if isinstance(adict, dict):
         for key in adict.keys():
             if adict[key] == k:
                 try:
-                    adict[key] = value if key not in typeconv else typeconv[key](value)
-                    #if adict[key] not in typeconv else typeconv[adict[key]](value)
+                    adict[key] = typeconv[key](value) if key in typeconv else value
                 except ValueError:
                     pass  # do nothing if the timestamp is already in the correct format
             elif isinstance(adict[key], (dict, list)):
