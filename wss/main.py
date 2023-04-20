@@ -286,7 +286,6 @@ class ChargerSim(tk.Tk):
             return
         self.lst_cases.delete(0,END)
         for item in self.TC.keys():
-            print(item)
             self.lst_cases.insert(END, item )
 
         self.init_result()

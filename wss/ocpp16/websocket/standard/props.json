@@ -149,8 +149,7 @@
         ["Reply", "GetConfiguration", {"configurationKey": [{
                 "key": "heartbeatInterval",
                 "readonly": "true"
-            }
-            ]}
+            }]}
         ],
         ["StatusNotification", {"status": "Preparing"}],
         ["Wait", "RemoteStartTransaction"],

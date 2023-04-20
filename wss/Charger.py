@@ -340,7 +340,7 @@ class Charger() :
                     self.log(f" Waiting message from CSMS [{c[1]}] ...", attr='green')
 
                     if self.test_mode == 1:
-                        doc = self.ocppdocs[c[1]]
+                        doc = json.loads(self.ocppdocs)[c[1]]
                         if len(c) > 2:
                             for d in c[2].keys():
                                 doc[3][d] = c[2][d]
@@ -369,8 +369,6 @@ class Charger() :
                                 senddoc[2][d]=c[2][d]
                         await self.sendReply(senddoc)
                 else :
-                    print(c)
-
                     doc = self.convertSendDoc(c)
 
                     self.txt_tc.delete(1.0, END)

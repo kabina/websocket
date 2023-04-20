@@ -6,7 +6,8 @@
             "ocpp16/websocket/u+(HV)",
             "ocpp20/websocket/standard",
             "ocpp20/websocket/u+",
-            "ocpp16/websocket/u+(multi)"
+            "ocpp16/websocket/u+(multi)",
+            "ocpp16/websocket/u+(GENIS)"
 
   ],
   "urls": {
@@ -73,6 +74,19 @@
         "crgr_cid": "115001513153C",
         "crgr_rcid": "115001513153C",
         "crgr_mdl": "ELC100C-003",
+        "auth_token": "Basic RVZBUjpFVkFSTEdV",
+        "idTag1": "1031040000069641",
+        "idTag2": "1031040000069642",
+        "connector": "3",
+        "interval1": 3600,
+        "interval2": 14400
+      },
+                 "ocpp16/websocket/u+(GENIS)": {
+        "crgr_sno": "GK-0223",
+        "crgr_rsno": "GK-0223",
+        "crgr_cid": "115001536011A",
+        "crgr_rcid": "115001536011A",
+        "crgr_mdl": "GK-SMC-AC-7",
         "auth_token": "Basic RVZBUjpFVkFSTEdV",
         "idTag1": "1031040000069641",
         "idTag2": "1031040000069642",
