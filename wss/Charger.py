@@ -1,6 +1,6 @@
 import asyncio
 import logging
-
+import ssl
 import websockets
 import json
 import uuid
@@ -166,10 +166,19 @@ class Charger() :
         else:
             wss_url = f'{self.config.wss_url}/{self.mdl}/{self.config.sno}'
         try :
+            # ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+            # ssl_context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+            # ssl_context.set_ciphers('TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,\
+            # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,\
+            # TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, ECDHE-RSA-AES128-GCM-SHA256,\
+            # ECDHE-RSA-AES256-GCM-SHA384, ECDHE-RSA-AES128-SHA256,ECDHE-RSA-AES256-SHA384,\
+            # AES128-GCM-SHA256,AES256-GCM-SHA384,AES128-SHA256')
             self.ws = await websockets.connect(
                 f'{wss_url}',
                 subprotocols=["ocpp1.6"],
-                extra_headers={"Authorization": self.config.auth_token}
+                extra_headers={"Authorization": self.config.auth_token,
+                               }
+                # ssl=ssl_context
             )
         except Exception as err:
             self.log(" 연결에 실패했습니다", attr="red")
