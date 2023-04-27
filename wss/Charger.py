@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import ssl
+from socket import socket
 import websockets
 import json
 import uuid
@@ -12,6 +13,7 @@ import tkinter as tk
 from tkinter import *
 import timeit
 from ChargerUtil import checkSchema, tc_render
+import OpenSSL.crypto
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 ch = logging.StreamHandler()
@@ -166,21 +168,42 @@ class Charger() :
         else:
             wss_url = f'{self.config.wss_url}/{self.mdl}/{self.config.sno}'
         try :
-            # ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-            # ssl_context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
-            # ssl_context.set_ciphers('TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,\
-            # TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,\
-            # TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, ECDHE-RSA-AES128-GCM-SHA256,\
-            # ECDHE-RSA-AES256-GCM-SHA384, ECDHE-RSA-AES128-SHA256,ECDHE-RSA-AES256-SHA384,\
-            # AES128-GCM-SHA256,AES256-GCM-SHA384,AES128-SHA256')
+            import ssl
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1 | ssl.OP_NO_TLSv1_3
+            ssl_context.set_ciphers(
+            'ECDHE-RSA-AES256-GCM-SHA384'
+            )
             self.ws = await websockets.connect(
                 f'{wss_url}',
                 subprotocols=["ocpp1.6"],
-                extra_headers={"Authorization": self.config.auth_token,
-                               }
-                # ssl=ssl_context
+                extra_headers={"Authorization": self.config.auth_token},
+                ssl=ssl_context
             )
+            sslcontext = self.ws.transport.get_extra_info('sslcontext')
+            cipher_list = sslcontext.get_ciphers()
+            print("서버지원 가능 목록+++++++++++++++++++++++++++")
+            for c in cipher_list:
+                print(f'tls:{c["protocol"]}, cipher:{c["name"]}')
+            protocol = self.ws.transport.get_protocol()
+            if protocol is not None:
+                print(protocol)
+            ciphers = sslcontext.get_ciphers()
+
+            print("클라이언트 지원 가능 목록++++++++++++++++++++++++")
+            cssl_context = ssl.create_default_context()
+            cipher_list= cssl_context.get_ciphers()
+            for c in cipher_list:
+                print(f'tls:{c["protocol"]}, cipher:{c["name"]}')
+
+            ssl_socket =self.ws.transport.get_extra_info('ssl_object')
+            protocol_version = ssl_socket.cipher()[1]
+            print(ssl_socket.cipher())
+
+
+            # print("Cipher suite used in WebSocket connection:", sslopt_ciphers)
         except Exception as err:
+            self.log(err)
             self.log(" 연결에 실패했습니다", attr="red")
 
         self.en_tr.delete(0, END)
