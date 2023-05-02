@@ -180,8 +180,20 @@ class Charger() :
                 extra_headers={"Authorization": self.config.auth_token},
                 ssl=ssl_context
             )
+            from OpenSSL import crypto
+            import base64
             sslcontext = self.ws.transport.get_extra_info('sslcontext')
+            """Server인증서 수신 및 Text 변환 출력"""
+            server_cert = self.ws.transport.get_extra_info('ssl_object').getpeercert(binary_form=True)
+            # X509 객체로 변환
+            x509 = crypto.load_certificate(crypto.FILETYPE_ASN1, server_cert)
+            # 인증서의 텍스트 형식으로 변환
+            cert_text = crypto.dump_certificate(crypto.FILETYPE_TEXT, x509)
+            print(str(cert_text.decode('utf-8')))
+            # base64로 인코딩하여 출력
+            print(base64.b64encode(cert_text).decode())
             cipher_list = sslcontext.get_ciphers()
+
             print("서버지원 가능 목록+++++++++++++++++++++++++++")
             for c in cipher_list:
                 print(f'tls:{c["protocol"]}, cipher:{c["name"]}')
